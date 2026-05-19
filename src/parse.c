@@ -186,6 +186,36 @@ void PRS_Primary(char **s)
                 PRS_Suffix(s);
                 break;
         }
+        case TOKEN_WHILE:
+        {
+                char *temp = *s;
+                while (true)
+                {
+                        TK_Next(s);
+                        TK_Require(s, TOKEN_LPAREN);
+                        PRS_Expression(s);
+                        VALUE cond = RT_Pop();
+                        TK_Require(s, TOKEN_RPAREN);
+                        RT_EnterScope(false);
+                        TK_Require(s, TOKEN_LPAREN); // body
+
+                        if (cond.Type == TYPE_INT && cond.as.integer > 0)
+                        {
+                                while (TK_Peek(s).Kind != TOKEN_RPAREN)
+                                        PRS_Expression(s);
+                                TK_Require(s, TOKEN_RPAREN);
+                        }
+                        else
+                        {
+                                TK_SkipBlock(s);
+                                RT_ExitScope();
+                                return;
+                        }
+                        RT_ExitScope();
+                        *s = temp;
+                }
+                break;
+        }
         case TOKEN_IF:
         {
                 TK_Next(s);
@@ -198,7 +228,8 @@ void PRS_Primary(char **s)
 
                 if (cond.Type == TYPE_INT && cond.as.integer > 0)
                 {
-                        PRS_Expression(s);
+                        while (TK_Peek(s).Kind != TOKEN_RPAREN)
+                                PRS_Expression(s);
                 }
                 else
                 {
@@ -211,11 +242,9 @@ void PRS_Primary(char **s)
                                 break;
                         }
 
-                        PRS_Suffix(s);
                         break;
                 }
                 RT_ExitScope();
-                PRS_Suffix(s);
                 break;
         }
         case TOKEN_ELSE:
@@ -227,14 +256,15 @@ void PRS_Primary(char **s)
 
                 if (cond.Type == TYPE_NONE)
                 {
-                        PRS_Expression(s);
+                        while (TK_Peek(s).Kind != TOKEN_RPAREN)
+                                PRS_Expression(s);
+                        TK_Require(s, TOKEN_RPAREN);
                 }
                 else
                 {
                         TK_SkipBlock(s);
                 }
                 RT_ExitScope();
-                PRS_Suffix(s);
                 break;
         }
 

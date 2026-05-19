@@ -31,6 +31,7 @@ typedef enum
         TOKEN_FUNCTION,
         TOKEN_IF,
         TOKEN_ELSE,
+        TOKEN_WHILE,
         TOKEN_LSQ,
         TOKEN_RSQ,
         TOKEN_STRING,

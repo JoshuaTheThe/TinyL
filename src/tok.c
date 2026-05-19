@@ -58,7 +58,8 @@ TOKEN TK_Next(char **s)
                         Token.Kind = TOKEN_NUMBER;
                         Token.Number = false;
                 }
-                
+                else if (!strncmp(Token.Identifier, "while", sizeof(Token.Identifier)))
+                        Token.Kind = TOKEN_WHILE;
                 return Token;
         }
         else if (chr == '"')

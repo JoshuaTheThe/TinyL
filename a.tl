@@ -8,11 +8,23 @@ factorial := function (n) {
         else       { n * factorial(n - 1) }
 };
 
-print(factorial(5));
+wfactorial := function (n) {
+        acc := 1;
+        while (n > 1)
+        {
+                acc = acc * n;
+                n = n - 1;
+        }
+        
+        acc
+};
+
+print(factorial(7));
+print(wfactorial(7));
 
 str := "Hello, World!";
 str[0] = 65;
 print(str);
 print("Hello, World!: min(2 3) = " min(2 3));
-print("ABC" is [65 66 67]);
+print(if ("ABC" is [65 66 67]) { "true" } else { "false" });
 print(11 % 10)
