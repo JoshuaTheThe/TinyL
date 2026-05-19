@@ -38,7 +38,8 @@ void PRS_Suffix(char **s)
                 RT_ExitScope();
                 break;
         }
-        default: break;
+        default:
+                break;
         }
 }
 
@@ -68,7 +69,7 @@ void PRS_Primary(char **s)
         }
         case TOKEN_NUMBER:
                 TK_Next(s);
-                RT_Push((VALUE){.Type=TYPE_INT, .as.integer = tok.Number});
+                RT_Push((VALUE){.Type = TYPE_INT, .as.integer = tok.Number});
                 PRS_Suffix(s);
                 break;
         case TOKEN_IF:
@@ -89,16 +90,21 @@ void PRS_Primary(char **s)
                 {
                         TK_SkipBlock(s);
                         if (TK_Peek(s).Kind == TOKEN_ELSE)
-                                RT_Push((VALUE){.Type=TYPE_NONE});
+                        {
+                                RT_Push((VALUE){.Type = TYPE_NONE});
+                                RT_ExitScope();
+                                PRS_Primary(s);
+                                break;
+                        }
+
                         RT_ExitScope();
-                        PRS_Primary(s);
+                        PRS_Suffix(s);
                         break;
                 }
                 RT_ExitScope();
                 PRS_Suffix(s);
                 break;
         }
-
         case TOKEN_ELSE:
         {
                 TK_Next(s);
@@ -146,7 +152,7 @@ void PRS_Primary(char **s)
         {
                 TK_Next(s);
                 TOKEN name = TK_Require(s, TOKEN_IDENTIFIER);
-                VARIABLE *Var = RT_CreateVariable(name, (VALUE){.Type=TYPE_NONE});
+                VARIABLE *Var = RT_CreateVariable(name, (VALUE){.Type = TYPE_NONE});
                 if (TK_Peek(s).Kind == TOKEN_ASSIGN)
                 {
                         TK_Next(s);
@@ -165,7 +171,7 @@ void PRS_Primary(char **s)
                 {
                         TK_Next(s);
                         PRS_Expression(s);
-                        Var->Value = RT_Pop();;
+                        Var->Value = RT_Pop();
                 }
                 RT_Push(Var->Value);
                 PRS_Suffix(s);
@@ -249,7 +255,7 @@ void PRS_Expression(char **s)
                         RT_Push((VALUE){.as.integer = left.as.integer == right.as.integer, .Type = TYPE_INT});
                 tok = TK_Peek(s);
         }
-        
+
         if (TK_Peek(s).Kind == TOKEN_EOE)
         {
                 TK_Next(s);

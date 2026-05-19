@@ -14,6 +14,7 @@ typedef enum
         TYPE_NONE,
         TYPE_FN,
         TYPE_INT,
+        TYPE_ARRAY,
         TYPE_BUILTIN,
 } TYPE;
 
@@ -29,6 +30,12 @@ typedef struct VALUE
                         TOKEN  arguments[16];
                         size_t argc;
                 } function;
+                
+                struct
+                {
+                        struct VALUE *elements;
+                        size_t        length;
+                } array;
                 
                 void (*builtin)(size_t argc);
         } as;
