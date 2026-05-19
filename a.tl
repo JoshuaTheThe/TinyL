@@ -31,3 +31,4 @@ print("asstr([65,66,67]): " asstr([65,66,67]));
 print("append(65 \"Hello, \"): " append(65 "Hello, "));
 print("remove(\"Hello, \" 0): " remove("Hello, " 0));
 print("find(\"Hello, \" \"e\"[0]): " find("Hello, " "e"[0]));
+print("Hello " input("Enter your Name: ") "!")

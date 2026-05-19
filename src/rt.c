@@ -291,3 +291,12 @@ void RT_Append(VALUE *arr, VALUE val)
         if (arr->as.array.is_string && val.Type != TYPE_INT)
                 arr->as.array.is_string = false;
 }
+
+void RT_ArrayInit(VALUE *arr)
+{
+        arr->Type = TYPE_ARRAY;
+        arr->as.array.items = NULL;
+        arr->as.array.count = 0;
+        arr->as.array.capacity = 0;
+        arr->as.array.is_string = false;
+}

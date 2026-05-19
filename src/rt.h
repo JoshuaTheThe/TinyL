@@ -82,5 +82,6 @@ void RT_CleanupValue(VALUE *Value);
 VALUE RT_Rel(int64_t rel);
 bool RT_Is(VALUE *A, VALUE *B);
 void RT_Append(VALUE *arr, VALUE val);
+void RT_ArrayInit(VALUE *arr);
 
 #endif

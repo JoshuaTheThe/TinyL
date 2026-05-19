@@ -18,6 +18,42 @@ void Builtin_Print(size_t argc)
         printf("\n");
 }
 
+void Builtin_Input(size_t argc)
+{
+        if (argc > 0)
+        {
+                VALUE Prompt = RT_Pop();
+                if (Prompt.Type == TYPE_ARRAY && Prompt.as.array.is_string)
+                {
+                        for (size_t i = 0; i < Prompt.as.array.count; i++)
+                                putchar(Prompt.as.array.items[i].as.integer);
+                }
+        }
+
+        char buffer[1024];
+        if (!fgets(buffer, sizeof(buffer), stdin))
+        {
+                RT_Push((VALUE){.Type = TYPE_NONE});
+                return;
+        }
+
+        size_t len = strlen(buffer);
+        if (len > 0 && buffer[len - 1] == '\n')
+                buffer[len - 1] = '\0';
+
+        VALUE result = {.Type = TYPE_ARRAY};
+        RT_ArrayInit(&result);
+        result.as.array.is_string = true;
+
+        for (char *p = buffer; *p; p++)
+                RT_Append(&result, INT(*p));
+
+        for (size_t i = 0; i < argc; i++)
+                RT_Pop();
+
+        RT_Push(result);
+}
+
 void Builtin_Find(size_t argc)
 {
         if (argc < 2)
@@ -35,7 +71,7 @@ void Builtin_Find(size_t argc)
                         return;
                 }
         }
-        
+
         RT_Push(INT(-1));
 }
 
@@ -113,21 +149,24 @@ void Builtin_Remove(size_t argc)
 
 void Builtin_Len(size_t argc)
 {
-        if (argc < 1) return;
+        if (argc < 1)
+                return;
         VALUE Array = RT_RequireType(TYPE_ARRAY);
         RT_Push(INT(Array.as.array.count));
 }
 
 void Builtin_Cap(size_t argc)
 {
-        if (argc < 1) return;
+        if (argc < 1)
+                return;
         VALUE Array = RT_RequireType(TYPE_ARRAY);
         RT_Push(INT(Array.as.array.capacity));
 }
 
 void Builtin_Str(size_t argc)
 {
-        if (argc < 1) return;
+        if (argc < 1)
+                return;
         VALUE Array = RT_RequireType(TYPE_ARRAY);
         Array.as.array.is_string = true;
         RT_Push(Array);
@@ -135,7 +174,8 @@ void Builtin_Str(size_t argc)
 
 void Builtin_Arr(size_t argc)
 {
-        if (argc < 1) return;
+        if (argc < 1)
+                return;
         VALUE Array = RT_RequireType(TYPE_ARRAY);
         Array.as.array.is_string = false;
         RT_Push(Array);
@@ -144,6 +184,7 @@ void Builtin_Arr(size_t argc)
 void Builtin_AddBuiltinFunctions(void)
 {
         ADD_BUILTIN("print", Builtin_Print);
+        ADD_BUILTIN("input", Builtin_Input);
         ADD_BUILTIN("find", Builtin_Find);
         ADD_BUILTIN("append", Builtin_Append);
         ADD_BUILTIN("remove", Builtin_Remove);
