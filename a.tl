@@ -5,4 +5,4 @@ min = function (a b){
         else       { b }
 }
 
-min(2 1)
+min(9 8) + 23

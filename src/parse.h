@@ -5,6 +5,7 @@
 #include <tok.h>
 #include <rt.h>
 
-void parse_expr(char **s);
+void PRS_Expression(char **s);
+void Execute(char *s);
 
 #endif

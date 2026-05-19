@@ -14,7 +14,7 @@ override DEFAULT_KCC := cc
 $(eval $(call DEFAULT_VAR,KCC,$(DEFAULT_KCC)))
 override DEFAULT_KLD := cc
 $(eval $(call DEFAULT_VAR,KLD,$(DEFAULT_KLD)))
-override DEFAULT_KCFLAGS := -Wall -Wextra -Wpedantic -g
+override DEFAULT_KCFLAGS := -Wall -Wextra -g
 $(eval $(call DEFAULT_VAR,KCFLAGS,$(DEFAULT_KCFLAGS)))
 override DEFAULT_KCPPFLAGS :=
 $(eval $(call DEFAULT_VAR,KCPPFLAGS,$(DEFAULT_KCPPFLAGS)))

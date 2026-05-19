@@ -87,7 +87,7 @@ void RT_DebugPrint(VALUE *Value, char *Name)
         else if (Value->Type == TYPE_FN)
                 printf("%.4x:%32s<fn>      fn@%p\n", Scope, Name, (void*)Value->as.function.start);
         else if (Value->Type == TYPE_BUILTIN)
-                printf("%.4x:%32s<builtin> builtin@%p\n", Scope, Name, Value->as.builtin);
+                printf("%.4x:%32s<builtin> builtin@%p\n", Scope, Name, (void *)Value->as.builtin);
         else if (Value->Type == TYPE_NONE)
                 printf("%.4x:%32s<none>\n", Scope, Name);
 }
@@ -126,4 +126,10 @@ void RT_Cleanup(void)
 void RT_EmptyStack(void)
 {
         StackPointer = 0;
+}
+
+void RT_Initialise(void)
+{
+        RT_EmptyStack();
+        RT_EnterScope(true);
 }

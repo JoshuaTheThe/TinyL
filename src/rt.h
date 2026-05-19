@@ -59,5 +59,6 @@ void RT_DebugPrint(VALUE *Value, char *Name);
 VALUE RT_RequireType(TYPE Type);
 void RT_Cleanup(void);
 void RT_EmptyStack(void);
-        
+void RT_Initialise(void);
+
 #endif

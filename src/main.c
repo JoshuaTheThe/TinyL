@@ -3,34 +3,36 @@
 #include <tok.h>
 #include <parse.h>
 
-int64_t execute(char *s)
+char *LoadFile(char *Path)
 {
-        char *p = s;
-        int64_t res = 0;
-        while (TK_Peek(&p).Kind != TOKEN_EOF)
+        FILE *f = fopen(Path, "rb");
+        if (!f)
+                return NULL;
+        fseek(f, 0, SEEK_END);
+        size_t s = ftell(f);
+        fseek(f, 0, SEEK_SET);
+        char *buf = calloc(1, s + 1);
+        if (!buf)
         {
-                parse_expr(&p);
+                fclose(f);
+                return NULL;
         }
 
-        return res;
+        fread(buf, 1, s, f);
+        fclose(f);
+        return buf;
 }
 
 int main(int argc, char **argv)
 {
         if (argc != 2)
                 return 1;
-        FILE *f = fopen(argv[1], "rb");
-        if (!f)
-                return 1;
-        fseek(f, 0, SEEK_END);
-        size_t s = ftell(f);
-        fseek(f, 0, SEEK_SET);
-        char *buf = calloc(1, s + 1);
-        fread(buf, 1, s, f);
-        RT_EnterScope(true);
-        int res = execute(buf);
-        free(buf);
-        fclose(f);
+        char *buf = LoadFile(argv[1]);
+        if (!buf)
+                return 2;
+        RT_Initialise();
+        Execute(buf);
         RT_Cleanup();
-        return res;
+        free(buf);
+        return 0;
 }
