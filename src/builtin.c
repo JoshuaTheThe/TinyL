@@ -6,16 +6,16 @@
 
 void Builtin_Print(size_t argc)
 {
-        for (int64_t i = 0; i < argc; ++i)
+        for (size_t i = 0; i < argc; ++i)
         {
                 VALUE Value = RT_Rel(-(argc-i-1));
                 RT_MiniDebugPrint(&Value);
-                printf("\n");
         }
 
-        for (int64_t i = 0; i < argc; ++i)
+        for (size_t i = 0; i < argc; ++i)
                 RT_Pop();
         RT_Push((VALUE){.Type=TYPE_INT, .as.integer = argc});
+        printf("\n");
 }
 
 void Builtin_AddBuiltinFunctions(void)

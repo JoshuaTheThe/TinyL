@@ -36,6 +36,7 @@ typedef struct VALUE
                         struct VALUE *items;
                         size_t        count;
                         size_t        capacity;
+                        bool          is_string;
                 } array;
                 
                 void (*builtin)(size_t argc);
@@ -45,7 +46,7 @@ typedef struct VALUE
 typedef struct VARIABLE
 {
         TOKEN Token;
-        char Name[16];
+        char Name[IDENTIFIER_SIZE];
         VALUE Value;
         struct VARIABLE *Next;
 } VARIABLE;

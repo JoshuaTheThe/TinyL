@@ -64,6 +64,31 @@ void PRS_Primary(char **s)
         TOKEN tok = TK_Peek(s);
         switch (tok.Kind)
         {
+        case TOKEN_STRING:
+        {
+                TK_Next(s);
+                VALUE arr = {.Type = TYPE_ARRAY};
+                arr.as.array.count = 0;
+                arr.as.array.capacity = 8;
+                arr.as.array.items = malloc(sizeof(VALUE) * 8);
+                arr.as.array.is_string = true;
+                for (size_t i = 0; i < tok.Number; ++i)
+                {
+                        VALUE item = (VALUE){.Type=TYPE_INT, .as.integer=tok.Identifier[i]};
+                        if (arr.as.array.count >= arr.as.array.capacity)
+                        {
+                                arr.as.array.capacity *= 2;
+                                arr.as.array.items = realloc(arr.as.array.items,
+                                                             sizeof(VALUE) * arr.as.array.capacity);
+                        }
+
+                        arr.as.array.items[arr.as.array.count++] = item;
+                }
+
+                RT_Push(arr);
+                PRS_Suffix(s);
+                break;
+        }
         case TOKEN_SUB: // negative expr prefix
         {
                 TK_Next(s);
@@ -95,6 +120,7 @@ void PRS_Primary(char **s)
                 arr.as.array.count = 0;
                 arr.as.array.capacity = 8;
                 arr.as.array.items = malloc(sizeof(VALUE) * 8);
+                arr.as.array.is_string = false;
                 while (TK_Peek(s).Kind != TOKEN_RSQ)
                 {
                         PRS_Expression(s);
@@ -182,9 +208,9 @@ void PRS_Primary(char **s)
                         Value.as.function.arguments[Value.as.function.argc++] = tok;
                 }
 
-                TK_Require(s, TOKEN_RPAREN); // args, for now just none
+                TK_Require(s, TOKEN_RPAREN);
                 Value.as.function.start = *s;
-                TK_Require(s, TOKEN_LPAREN); // body
+                TK_Require(s, TOKEN_LPAREN);
                 TK_SkipBlock(s);
                 RT_Push(Value);
                 PRS_Suffix(s);

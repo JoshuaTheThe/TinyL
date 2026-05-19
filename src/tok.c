@@ -14,7 +14,8 @@ TOKEN TK_Next(char **s)
         do
                 chr = TK_GetChar(s);
         while (chr == ' ' || chr == '\t' || chr == '\n');
-        if (chr >= '0' && chr <= '9') // same for identifier, but dont convert to number
+
+        if (chr >= '0' && chr <= '9')
         {
                 TOKEN Token = {.Kind = TOKEN_NUMBER, {0}, 0};
                 for (; chr >= '0' && chr <= '9' && Token.Number < sizeof(Token.Identifier); ++Token.Number)
@@ -23,8 +24,8 @@ TOKEN TK_Next(char **s)
                         chr = TK_GetChar(s);
                 }
 
-                *s -= 1;                               // we have read one too many characters
-                Token.Number = atoi(Token.Identifier); // unsafe function, oh well
+                *s -= 1;
+                Token.Number = atoi(Token.Identifier);
                 return Token;
         }
         else if (chr >= 'a' && chr <= 'z')
@@ -38,25 +39,61 @@ TOKEN TK_Next(char **s)
 
                 *s -= 1;
                 if (!strncmp(Token.Identifier, "let", sizeof(Token.Identifier)))
-                {
                         Token.Kind = TOKEN_DECLARE;
-                }
                 else if (!strncmp(Token.Identifier, "function", sizeof(Token.Identifier)))
-                {
                         Token.Kind = TOKEN_FUNCTION;
-                }
                 else if (!strncmp(Token.Identifier, "if", sizeof(Token.Identifier)))
-                {
                         Token.Kind = TOKEN_IF;
-                }
                 else if (!strncmp(Token.Identifier, "else", sizeof(Token.Identifier)))
-                {
                         Token.Kind = TOKEN_ELSE;
-                }
                 else if (!strncmp(Token.Identifier, "is", sizeof(Token.Identifier)))
-                {
                         Token.Kind = TOKEN_EQU;
+                return Token;
+        }
+        else if (chr == '"')
+        {
+                TOKEN Token = {.Kind = TOKEN_STRING, {0}, 0};
+                chr = TK_GetChar(s);
+                while (chr != '"' && chr != '\0')
+                {
+                        if (chr == '\\')
+                        {
+                                chr = TK_GetChar(s);
+                                switch (chr)
+                                {
+                                case 'n':
+                                        chr = '\n';
+                                        break;
+                                case 't':
+                                        chr = '\t';
+                                        break;
+                                case 'r':
+                                        chr = '\r';
+                                        break;
+                                case '\\':
+                                        chr = '\\';
+                                        break;
+                                case '"':
+                                        chr = '"';
+                                        break;
+                                case '\'':
+                                        chr = '\'';
+                                        break;
+                                default:
+                                        printf("error: unknown escape sequence '\\%c'\n", chr);
+                                        break;
+                                }
+                        }
+
+                        if (Token.Number < sizeof(Token.Identifier) - 1)
+                                Token.Identifier[Token.Number++] = chr;
+                        chr = TK_GetChar(s);
                 }
+
+                if (chr != '"')
+                        printf("error: unterminated string\n");
+
+                Token.Identifier[Token.Number] = '\0';
                 return Token;
         }
         else if (chr == ':')

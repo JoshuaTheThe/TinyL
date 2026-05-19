@@ -35,7 +35,7 @@ void RT_Push(VALUE Value)
 VARIABLE *RT_CreateVariable(TOKEN tok, VALUE Value)
 {
         VARIABLE *Var = calloc(1, sizeof(*Var));
-        memcpy(Var->Name, tok.Identifier, 16);
+        memcpy(Var->Name, tok.Identifier, IDENTIFIER_SIZE);
         Var->Next = Scopes[Scope].Variables;
         Var->Token = tok;
         Var->Value = Value;
@@ -48,7 +48,7 @@ VARIABLE *RT_FindVariable(TOKEN tok)
         for (int depth = Scope; depth >= 0; --depth)
         {
                 VARIABLE *Var = Scopes[depth].Variables;
-                while (Var && memcmp(Var->Name, tok.Identifier, 16))
+                while (Var && memcmp(Var->Name, tok.Identifier, IDENTIFIER_SIZE))
                 {
                         Var = Var->Next;
                 }
@@ -110,7 +110,7 @@ void RT_MiniDebugPrint(VALUE *Value)
                 printf("fn@%p", (void*)Value->as.function.start);
         else if (Value->Type == TYPE_BUILTIN)
                 printf("builtin@%p", (void *)Value->as.builtin);
-        else if (Value->Type == TYPE_ARRAY)
+        else if (Value->Type == TYPE_ARRAY && !Value->as.array.is_string)
         {
                 printf("[");
                 for (size_t i = 0; i < Value->as.array.count; ++i)
@@ -121,8 +121,15 @@ void RT_MiniDebugPrint(VALUE *Value)
 
                 printf("]");
         }
+        else if (Value->Type == TYPE_ARRAY && Value->as.array.is_string)
+        {
+                for (size_t i = 0; i < Value->as.array.count; ++i)
+                {
+                        printf("%c", Value->as.array.items[i].as.integer);
+                }
+        }
         else if (Value->Type == TYPE_NONE)
-                printf("none");
+                printf("None");
 }
 
 void RT_DebugPrint(size_t X, VALUE *Value, char *Name)
@@ -133,7 +140,7 @@ void RT_DebugPrint(size_t X, VALUE *Value, char *Name)
                 printf("%.4lx:%32s<fn>      fn@%p\n", X, Name, (void*)Value->as.function.start);
         else if (Value->Type == TYPE_BUILTIN)
                 printf("%.4lx:%32s<builtin> builtin@%p\n", X, Name, (void *)Value->as.builtin);
-        else if (Value->Type == TYPE_ARRAY)
+        else if (Value->Type == TYPE_ARRAY && !Value->as.array.is_string)
         {
                 printf("%.4lx:%32s<array>  =[", X, Name);
                 for (size_t i = 0; i < Value->as.array.count; ++i)
@@ -143,6 +150,17 @@ void RT_DebugPrint(size_t X, VALUE *Value, char *Name)
                 }
 
                 printf("]\n");
+        }
+        else if (Value->Type == TYPE_ARRAY && Value->as.array.is_string)
+        {
+                printf("%.4lx:%32s<string> =[", X, Name);
+                printf("'");
+                for (size_t i = 0; i < Value->as.array.count; ++i)
+                {
+                        printf("%c", Value->as.array.items[i].as.integer);
+                }
+
+                printf("'\n");
         }
         else if (Value->Type == TYPE_NONE)
                 printf("%.4lx:%32s<none>\n", X, Name);

@@ -7,6 +7,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define IDENTIFIER_SIZE (256)
+
 typedef enum
 {
         TOKEN_EOF, // end of File
@@ -30,12 +32,13 @@ typedef enum
         TOKEN_ELSE,
         TOKEN_LSQ,
         TOKEN_RSQ,
+        TOKEN_STRING,
 } TOKENKIND;
 
 typedef struct
 {
         TOKENKIND Kind;
-        char Identifier[16];
+        char Identifier[IDENTIFIER_SIZE];
         uint64_t Number;
 } TOKEN;
 
