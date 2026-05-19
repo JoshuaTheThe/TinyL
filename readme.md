@@ -27,5 +27,8 @@
 factorial := function (n) {
         if (n < 2) { 1 }
         else       { n * factorial(n - 1) }
-};
+}
 ```
+
+# inbuilt functions
+- we have (some) builtin functions, such as print to stdout, input from stdin, find in array, append to array, remove index from array, length of array, capacity of array, array as a string, string as an array.
