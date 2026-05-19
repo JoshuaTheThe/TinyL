@@ -15,3 +15,4 @@ str[0] = 65;
 print(str);
 print("Hello, World!: min(2 3) = " min(2 3));
 print("ABC" is [65 66 67]);
+print(11 % 10)
