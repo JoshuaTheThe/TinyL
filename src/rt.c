@@ -54,6 +54,19 @@ VARIABLE *RT_FindVariable(TOKEN tok)
         return NULL;
 }
 
+void RT_CleanupValue(VALUE *Value)
+{
+        if (Value->Type == TYPE_ARRAY)
+        {
+                for (size_t i = 0; i < Value->as.array.count; ++i)
+                {
+                        RT_CleanupValue(&Value->as.array.items[i]);
+                }
+
+                free(Value->as.array.items);
+        }
+}
+
 void RT_CleanupVariables(void)
 {
         VARIABLE *Var = Scopes[Scope].Variables;
@@ -61,6 +74,7 @@ void RT_CleanupVariables(void)
         {
                 VARIABLE *Prev = Var;
                 Var = Var->Next;
+                RT_CleanupValue(&Prev->Value);
                 free(Prev);
         }
 
@@ -80,16 +94,50 @@ void RT_ExitScope(void)
         Scope--;
 }
 
-void RT_DebugPrint(VALUE *Value, char *Name)
+void RT_MiniDebugPrint(VALUE *Value)
 {
         if (Value->Type == TYPE_INT)
-                printf("%.4x:%32s<i64>    =%ld\n", Scope, Name, Value->as.integer);
+                printf("%ld", Value->as.integer);
         else if (Value->Type == TYPE_FN)
-                printf("%.4x:%32s<fn>      fn@%p\n", Scope, Name, (void*)Value->as.function.start);
+                printf("fn@%p", (void*)Value->as.function.start);
         else if (Value->Type == TYPE_BUILTIN)
-                printf("%.4x:%32s<builtin> builtin@%p\n", Scope, Name, (void *)Value->as.builtin);
+                printf("builtin@%p", (void *)Value->as.builtin);
+        else if (Value->Type == TYPE_ARRAY)
+        {
+                printf("[");
+                for (size_t i = 0; i < Value->as.array.count; ++i)
+                {
+                        RT_MiniDebugPrint(&Value->as.array.items[i]);
+                        if (i < Value->as.array.count - 1) printf(", ");
+                }
+
+                printf("]");
+        }
         else if (Value->Type == TYPE_NONE)
-                printf("%.4x:%32s<none>\n", Scope, Name);
+                printf("none");
+}
+
+void RT_DebugPrint(size_t X, VALUE *Value, char *Name)
+{
+        if (Value->Type == TYPE_INT)
+                printf("%.4lx:%32s<i64>    =%ld\n", X, Name, Value->as.integer);
+        else if (Value->Type == TYPE_FN)
+                printf("%.4lx:%32s<fn>      fn@%p\n", X, Name, (void*)Value->as.function.start);
+        else if (Value->Type == TYPE_BUILTIN)
+                printf("%.4lx:%32s<builtin> builtin@%p\n", X, Name, (void *)Value->as.builtin);
+        else if (Value->Type == TYPE_ARRAY)
+        {
+                printf("%.4lx:%32s<array>  =[", X, Name);
+                for (size_t i = 0; i < Value->as.array.count; ++i)
+                {
+                        RT_MiniDebugPrint(&Value->as.array.items[i]);
+                        if (i < Value->as.array.count - 1) printf(", ");
+                }
+
+                printf("]\n");
+        }
+        else if (Value->Type == TYPE_NONE)
+                printf("%.4lx:%32s<none>\n", X, Name);
 }
 
 VALUE RT_RequireType(TYPE Type)
@@ -108,7 +156,7 @@ void RT_Cleanup(void)
                 VARIABLE *Variable = Scopes[Scope].Variables;
                 while (Variable)
                 {
-                        RT_DebugPrint(&Variable->Value, Variable->Name);
+                        RT_DebugPrint(Scope, &Variable->Value, Variable->Name);
                         Variable = Variable->Next;
                 }
                 
@@ -119,7 +167,7 @@ void RT_Cleanup(void)
         while (StackPointer > 0)
         {
                 VALUE Value = RT_Pop();
-                RT_DebugPrint(&Value, "");
+                RT_DebugPrint(StackPointer, &Value, "");
         }
 }
 

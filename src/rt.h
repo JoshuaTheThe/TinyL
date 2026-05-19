@@ -33,8 +33,9 @@ typedef struct VALUE
                 
                 struct
                 {
-                        struct VALUE *elements;
-                        size_t        length;
+                        struct VALUE *items;
+                        size_t        count;
+                        size_t        capacity;
                 } array;
                 
                 void (*builtin)(size_t argc);
@@ -62,10 +63,11 @@ VARIABLE *RT_FindVariable(TOKEN tok);
 void RT_CleanupVariables(void);
 void RT_EnterScope(bool Private);
 void RT_ExitScope(void);
-void RT_DebugPrint(VALUE *Value, char *Name);
+void RT_DebugPrint(size_t X, VALUE *Value, char *Name);
 VALUE RT_RequireType(TYPE Type);
 void RT_Cleanup(void);
 void RT_EmptyStack(void);
 void RT_Initialise(void);
+void RT_CleanupValue(VALUE *Value);
 
 #endif

@@ -6,6 +6,23 @@ void PRS_Suffix(char **s)
         TOKEN tok = TK_Peek(s);
         switch (tok.Kind)
         {
+        case TOKEN_LSQ: // access
+        {        
+                RT_EnterScope(false);
+                TK_Next(s);
+                VALUE Base  = RT_RequireType(TYPE_ARRAY);
+                while (TK_Peek(s).Kind != TOKEN_RSQ)
+                {
+                        PRS_Expression(s);
+                }
+
+                VALUE Index = RT_RequireType(TYPE_INT);
+                VALUE Copy  = Index.as.integer > 0 && Index.as.integer < Base.as.array.count ? Base.as.array.items[Index.as.integer] : (VALUE){.Type=TYPE_NONE};
+                RT_CleanupValue(&Base);
+                RT_Push(Copy);
+                RT_ExitScope();
+                break;
+        }
         case TOKEN_LPAREN: // call
         {
                 RT_EnterScope(false);
@@ -72,6 +89,32 @@ void PRS_Primary(char **s)
                 RT_Push((VALUE){.Type = TYPE_INT, .as.integer = tok.Number});
                 PRS_Suffix(s);
                 break;
+        case TOKEN_LSQ:
+        {
+                TK_Next(s);
+                VALUE arr = {.Type = TYPE_ARRAY};
+                arr.as.array.count = 0;
+                arr.as.array.capacity = 8;
+                arr.as.array.items = malloc(sizeof(VALUE) * 8);
+                while (TK_Peek(s).Kind != TOKEN_RSQ)
+                {
+                        PRS_Expression(s);
+                        VALUE item = RT_Pop();
+                        if (arr.as.array.count >= arr.as.array.capacity)
+                        {
+                                arr.as.array.capacity *= 2;
+                                arr.as.array.items = realloc(arr.as.array.items,
+                                                             sizeof(VALUE) * arr.as.array.capacity);
+                        }
+
+                        arr.as.array.items[arr.as.array.count++] = item;
+                }
+
+                TK_Require(s, TOKEN_RSQ);
+                RT_Push(arr);
+                PRS_Suffix(s);
+                break;
+        }
         case TOKEN_IF:
         {
                 TK_Next(s);
