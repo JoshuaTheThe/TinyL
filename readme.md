@@ -2,7 +2,6 @@
 # tiny language (TL)
 - everything is an expression
 - to create an array, just use <code>[a,b,...]</code>
-- no loops, use recursion
 - maximum of 16 function args
 - basically no error checking
 
