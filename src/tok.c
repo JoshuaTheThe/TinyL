@@ -173,6 +173,5 @@ void TK_SkipBlock(char **s)
                 if (tok.Kind == TOKEN_RPAREN)
                         depth--;
         }
-
-        TK_Next(s);
 }
+

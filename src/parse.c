@@ -157,15 +157,14 @@ void PRS_Primary(char **s)
                 else
                 {
                         TK_SkipBlock(s);
+                        RT_Push((VALUE){.Type = TYPE_NONE});
+                        RT_ExitScope();
                         if (TK_Peek(s).Kind == TOKEN_ELSE)
                         {
-                                RT_Push((VALUE){.Type = TYPE_NONE});
-                                RT_ExitScope();
                                 PRS_Primary(s);
                                 break;
                         }
 
-                        RT_ExitScope();
                         PRS_Suffix(s);
                         break;
                 }
@@ -176,10 +175,7 @@ void PRS_Primary(char **s)
         case TOKEN_ELSE:
         {
                 TK_Next(s);
-                TK_Require(s, TOKEN_LPAREN);
-                PRS_Expression(s);
                 VALUE cond = RT_Pop();
-                TK_Require(s, TOKEN_RPAREN);
                 RT_EnterScope(false);
                 TK_Require(s, TOKEN_LPAREN); // body
 
