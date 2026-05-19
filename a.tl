@@ -1,9 +1,10 @@
 let x=10;
 let y=0;
+
 let min = function (a b){
         if (a < b) { a }
         else       { b }
-}
+};
 
-min(9 8) + 23;
-[1 2][1]
+print(2 3);
+min(9 8) + 24

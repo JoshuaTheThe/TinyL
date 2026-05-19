@@ -1,5 +1,6 @@
 
 #include <rt.h>
+#include <builtin.h>
 
 SCOPE Scopes[1024] = {0};
 VALUE Stack[1024] = {0};
@@ -10,6 +11,13 @@ VALUE RT_Pop(void)
 {
         if (StackPointer > 0)
                 return Stack[StackPointer--];
+        return (VALUE){0};
+}
+
+VALUE RT_Rel(int64_t rel)
+{
+        if (StackPointer+rel > 0)
+                return Stack[StackPointer+rel];
         return (VALUE){0};
 }
 
@@ -140,11 +148,11 @@ void RT_DebugPrint(size_t X, VALUE *Value, char *Name)
                 printf("%.4lx:%32s<none>\n", X, Name);
 }
 
-VALUE RT_RequireType(TYPE Type)
+VALUE RT_RequireTypeIMPL(TYPE Type, const char *const func, const char *const file, int line)
 {
         VALUE Value = RT_Pop();
         if (Value.Type == Type) return Value;
-        printf("error: expected value of type %d but got %d\n", Type, Value.Type);
+        printf("error: expected value of type %d but got %d, raised in %s in %s:%d\n", Type, Value.Type, func, file, line);
         return (VALUE){.Type=TYPE_NONE};
 }
 
@@ -180,4 +188,5 @@ void RT_Initialise(void)
 {
         RT_EmptyStack();
         RT_EnterScope(true);
+        Builtin_AddBuiltinFunctions();
 }

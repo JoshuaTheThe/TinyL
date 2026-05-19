@@ -56,6 +56,8 @@ typedef struct SCOPE
         bool Private; // cannot access parent;
 } SCOPE;
 
+#define RT_RequireType(type) RT_RequireTypeIMPL((type), __func__, __FILE__, __LINE__)
+
 VALUE RT_Pop(void);
 void RT_Push(VALUE Value);
 VARIABLE *RT_CreateVariable(TOKEN tok, VALUE Value);
@@ -63,11 +65,13 @@ VARIABLE *RT_FindVariable(TOKEN tok);
 void RT_CleanupVariables(void);
 void RT_EnterScope(bool Private);
 void RT_ExitScope(void);
+void RT_MiniDebugPrint(VALUE *Value);
 void RT_DebugPrint(size_t X, VALUE *Value, char *Name);
-VALUE RT_RequireType(TYPE Type);
+VALUE RT_RequireTypeIMPL(TYPE Type, const char *const func, const char *const file, int line);
 void RT_Cleanup(void);
 void RT_EmptyStack(void);
 void RT_Initialise(void);
 void RT_CleanupValue(VALUE *Value);
+VALUE RT_Rel(int64_t rel);
 
 #endif

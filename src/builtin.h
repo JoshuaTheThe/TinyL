@@ -4,4 +4,6 @@
 
 // Builtin functions
 
+void Builtin_AddBuiltinFunctions(void);
+
 #endif
