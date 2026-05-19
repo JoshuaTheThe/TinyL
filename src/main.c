@@ -41,7 +41,7 @@ typedef enum
         TYPE_NONE,
         TYPE_FN,
         TYPE_INT,
-        TYPE_INBUILT,
+        TYPE_BUILTIN,
 } TYPE;
 
 typedef struct VALUE
@@ -57,7 +57,7 @@ typedef struct VALUE
                         size_t argc;
                 } function;
                 
-                void (*inbuilt)(void);
+                void (*builtin)(size_t argc);
         } as;
 } VALUE;
 
@@ -168,8 +168,8 @@ void DebugPrint(VALUE *Value, char *Name)
                 printf("%.4x:%32s<i64>    =%ld\n", Scope, Name, Value->as.integer);
         else if (Value->Type == TYPE_FN)
                 printf("%.4x:%32s<fn>      fn@%p\n", Scope, Name, (void*)Value->as.function.start);
-        else if (Value->Type == TYPE_INBUILT)
-                printf("%.4x:%32s<inbuilt> inbuilt@%p\n", Scope, Name, Value->as.inbuilt);
+        else if (Value->Type == TYPE_BUILTIN)
+                printf("%.4x:%32s<builtin> builtin@%p\n", Scope, Name, Value->as.builtin);
         else if (Value->Type == TYPE_NONE)
                 printf("%.4x:%32s<none>\n", Scope, Name);
 }
@@ -293,16 +293,31 @@ void parse_suffix(char **s)
         {
                 EnterScope(false);
                 NextToken(s);
-                VALUE Value = RequireType(TYPE_FN);
-                char *p = Value.as.function.start;
-                size_t argc = 0;
-                while (PeekToken(s).Kind != TOKEN_RPAREN && argc < 16)
+                VALUE Value = Pop();
+                if (Value.Type == TYPE_FN)
                 {
-                        parse_expr(s);
-                        CreateVariable(Value.as.function.arguments[argc++], Pop());
+                        char *p = Value.as.function.start;
+                        size_t argc = 0;
+                        while (PeekToken(s).Kind != TOKEN_RPAREN && argc < 16)
+                        {
+                                parse_expr(s);
+                                CreateVariable(Value.as.function.arguments[argc++], Pop());
+                        }
+                        Require(s, TOKEN_RPAREN);
+                        parse_expr(&p);
                 }
-                Require(s, TOKEN_RPAREN);
-                parse_expr(&p);
+                else if (Value.Type == TYPE_BUILTIN)
+                {
+                        size_t argc = 0;
+                        while (PeekToken(s).Kind != TOKEN_RPAREN)
+                        {
+                                parse_expr(s);
+                                argc++;
+                        }
+                        Require(s, TOKEN_RPAREN);
+                        Value.as.builtin(argc);
+                }
+
                 ExitScope();
                 break;
         }
