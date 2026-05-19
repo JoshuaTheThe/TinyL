@@ -6,20 +6,65 @@ void PRS_Suffix(char **s)
         TOKEN tok = TK_Peek(s);
         switch (tok.Kind)
         {
-        case TOKEN_LSQ: // access
+        case TOKEN_LSQ:
         {
-                RT_EnterScope(false);
                 TK_Next(s);
-                VALUE Base = RT_RequireType(TYPE_ARRAY);
-                while (TK_Peek(s).Kind != TOKEN_RSQ)
+                PRS_Expression(s);
+                VALUE Index = RT_Pop();
+                TK_Require(s, TOKEN_RSQ);
+                VALUE Base = RT_Pop();
+
+                if (Base.Type != TYPE_ARRAY)
                 {
-                        PRS_Expression(s);
+                        printf("error: cannot index non-array\n");
+                        RT_Push((VALUE){.Type = TYPE_NONE});
+                        PRS_Suffix(s);
+                        break;
                 }
 
-                VALUE Index = RT_RequireType(TYPE_INT);
-                VALUE Copy = Index.as.integer >= 0 && Index.as.integer < Base.as.array.count ? Base.as.array.items[Index.as.integer] : (VALUE){.Type = TYPE_NONE};
-                RT_Push(Copy);
-                RT_ExitScope();
+                if (Index.Type != TYPE_INT)
+                {
+                        printf("error: array index must be integer\n");
+                        RT_Push((VALUE){.Type = TYPE_NONE});
+                        PRS_Suffix(s);
+                        break;
+                }
+
+                int64_t idx = Index.as.integer;
+                if (TK_Peek(s).Kind == TOKEN_ASSIGN)
+                {
+                        TK_Next(s);
+                        PRS_Expression(s);
+                        VALUE Value = RT_Pop();
+
+                        if (idx < 0 || idx >= (int64_t)Base.as.array.count)
+                        {
+                                printf("error: index %ld out of bounds (size %zu)\n",
+                                       idx, Base.as.array.count);
+                                RT_Push((VALUE){.Type = TYPE_NONE});
+                        }
+                        else
+                        {
+                                RT_CleanupValue(&Base.as.array.items[idx]);
+                                Base.as.array.items[idx] = Value;
+                                RT_Push(Value);
+                        }
+                }
+                else
+                {
+                        if (idx < 0 || idx >= (int64_t)Base.as.array.count)
+                        {
+                                printf("error: index %ld out of bounds (size %zu)\n",
+                                       idx, Base.as.array.count);
+                                RT_Push((VALUE){.Type = TYPE_NONE});
+                        }
+                        else
+                        {
+                                RT_Push(Base.as.array.items[idx]);
+                        }
+                }
+
+                PRS_Suffix(s);
                 break;
         }
         case TOKEN_LPAREN: // call
@@ -52,6 +97,7 @@ void PRS_Suffix(char **s)
                 }
 
                 RT_ExitScope();
+                PRS_Suffix(s);
                 break;
         }
         default:
@@ -74,7 +120,7 @@ void PRS_Primary(char **s)
                 arr.as.array.is_string = true;
                 for (size_t i = 0; i < tok.Number; ++i)
                 {
-                        VALUE item = (VALUE){.Type=TYPE_INT, .as.integer=tok.Identifier[i]};
+                        VALUE item = (VALUE){.Type = TYPE_INT, .as.integer = tok.Identifier[i]};
                         if (arr.as.array.count >= arr.as.array.capacity)
                         {
                                 arr.as.array.capacity *= 2;
