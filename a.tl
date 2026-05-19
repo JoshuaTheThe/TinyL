@@ -1,6 +1,6 @@
 x := 10;
 y := 0;
-min := function (a b){
+min := function (a b) {
         if (a < b) { a }
         else       { b }
 };
