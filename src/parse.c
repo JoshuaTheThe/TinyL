@@ -17,8 +17,7 @@ void PRS_Suffix(char **s)
                 }
 
                 VALUE Index = RT_RequireType(TYPE_INT);
-                VALUE Copy = Index.as.integer > 0 && Index.as.integer < Base.as.array.count ? Base.as.array.items[Index.as.integer] : (VALUE){.Type = TYPE_NONE};
-                RT_CleanupValue(&Base);
+                VALUE Copy = Index.as.integer >= 0 && Index.as.integer < Base.as.array.count ? Base.as.array.items[Index.as.integer] : (VALUE){.Type = TYPE_NONE};
                 RT_Push(Copy);
                 RT_ExitScope();
                 break;
