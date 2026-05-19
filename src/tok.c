@@ -124,6 +124,8 @@ TOKEN TK_Next(char **s)
                 return (TOKEN){.Kind = TOKEN_MUL, {0}, 0};
         case '/':
                 return (TOKEN){.Kind = TOKEN_DIV, {0}, 0};
+        case '%':
+                return (TOKEN){.Kind = TOKEN_MOD, {0}, 0};
         case '<':
                 return (TOKEN){.Kind = TOKEN_LSS, {0}, 0};
         case '>':

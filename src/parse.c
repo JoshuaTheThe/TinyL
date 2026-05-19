@@ -328,7 +328,7 @@ void PRS_MulDiv(char **s)
 {
         PRS_Primary(s);
         TOKEN tok = TK_Peek(s);
-        while (tok.Kind == TOKEN_MUL || tok.Kind == TOKEN_DIV)
+        while (tok.Kind == TOKEN_MUL || tok.Kind == TOKEN_DIV || tok.Kind == TOKEN_MOD)
         {
                 TK_Next(s);
                 PRS_Primary(s);
@@ -338,6 +338,8 @@ void PRS_MulDiv(char **s)
                         RT_Push((VALUE){.as.integer = left.as.integer * right.as.integer, .Type = TYPE_INT});
                 else if (tok.Kind == TOKEN_DIV)
                         RT_Push((VALUE){.as.integer = left.as.integer / right.as.integer, .Type = TYPE_INT});
+                else if (tok.Kind == TOKEN_MOD)
+                        RT_Push((VALUE){.as.integer = left.as.integer % right.as.integer, .Type = TYPE_INT});
                 tok = TK_Peek(s);
         }
 }

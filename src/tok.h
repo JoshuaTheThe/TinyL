@@ -17,6 +17,7 @@ typedef enum
         TOKEN_SUB,
         TOKEN_MUL,
         TOKEN_DIV,
+        TOKEN_MOD,
         TOKEN_LSS,
         TOKEN_GRT,
         TOKEN_EQU,
