@@ -9,6 +9,8 @@
 #include <string.h>
 #include <tok.h>
 
+#define INT(X) ((VALUE){.Type=TYPE_INT,.as.integer = X})
+
 typedef enum
 {
         TYPE_NONE,
@@ -74,5 +76,6 @@ void RT_EmptyStack(void);
 void RT_Initialise(void);
 void RT_CleanupValue(VALUE *Value);
 VALUE RT_Rel(int64_t rel);
+bool RT_Is(VALUE *A, VALUE *B);
 
 #endif

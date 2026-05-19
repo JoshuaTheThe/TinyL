@@ -326,14 +326,24 @@ void PRS_Expression(char **s)
         {
                 TK_Next(s);
                 PRS_AddSub(s);
-                VALUE right = RT_RequireType(TYPE_INT);
-                VALUE left = RT_RequireType(TYPE_INT);
                 if (tok.Kind == TOKEN_LSS)
+                {
+                        VALUE right = RT_RequireType(TYPE_INT);
+                        VALUE left = RT_RequireType(TYPE_INT);
                         RT_Push((VALUE){.as.integer = left.as.integer < right.as.integer, .Type = TYPE_INT});
+                }
                 else if (tok.Kind == TOKEN_GRT)
+                {
+                        VALUE right = RT_RequireType(TYPE_INT);
+                        VALUE left = RT_RequireType(TYPE_INT);
                         RT_Push((VALUE){.as.integer = left.as.integer > right.as.integer, .Type = TYPE_INT});
+                }
                 else
-                        RT_Push((VALUE){.as.integer = left.as.integer == right.as.integer, .Type = TYPE_INT});
+                {
+                        VALUE right = RT_Pop();
+                        VALUE left = RT_Pop();
+                        RT_Push(INT(RT_Is(&left, &right)));
+                }
                 tok = TK_Peek(s);
         }
 }

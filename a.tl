@@ -4,3 +4,4 @@ min := function (a b) {
 };
 
 print("Hello, World!: min(2 3) = " min(2 3))
+print("ABC" is [65 66 67])

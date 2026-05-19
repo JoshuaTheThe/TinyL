@@ -16,8 +16,8 @@ VALUE RT_Pop(void)
 
 VALUE RT_Rel(int64_t rel)
 {
-        if (StackPointer+rel > 0)
-                return Stack[StackPointer+rel];
+        if (StackPointer + rel > 0)
+                return Stack[StackPointer + rel];
         return (VALUE){0};
 }
 
@@ -107,7 +107,7 @@ void RT_MiniDebugPrint(VALUE *Value)
         if (Value->Type == TYPE_INT)
                 printf("%ld", Value->as.integer);
         else if (Value->Type == TYPE_FN)
-                printf("fn@%p", (void*)Value->as.function.start);
+                printf("fn@%p", (void *)Value->as.function.start);
         else if (Value->Type == TYPE_BUILTIN)
                 printf("builtin@%p", (void *)Value->as.builtin);
         else if (Value->Type == TYPE_ARRAY && !Value->as.array.is_string)
@@ -116,7 +116,8 @@ void RT_MiniDebugPrint(VALUE *Value)
                 for (size_t i = 0; i < Value->as.array.count; ++i)
                 {
                         RT_MiniDebugPrint(&Value->as.array.items[i]);
-                        if (i < Value->as.array.count - 1) printf(", ");
+                        if (i < Value->as.array.count - 1)
+                                printf(", ");
                 }
 
                 printf("]");
@@ -125,11 +126,43 @@ void RT_MiniDebugPrint(VALUE *Value)
         {
                 for (size_t i = 0; i < Value->as.array.count; ++i)
                 {
-                        printf("%c", Value->as.array.items[i].as.integer);
+                        printf("%c", (char)Value->as.array.items[i].as.integer);
                 }
         }
         else if (Value->Type == TYPE_NONE)
                 printf("None");
+}
+
+bool RT_Is(VALUE *A, VALUE *B)
+{
+        if (A->Type != B->Type)
+                return false;
+
+        switch (A->Type)
+        {
+        case TYPE_NONE:
+                return true;
+        case TYPE_INT:
+                return A->as.integer == B->as.integer;
+        case TYPE_FN:
+                return (A->as.function.start == B->as.function.start &&
+                        A->as.function.argc == B->as.function.argc &&
+                        !memcmp(A->as.function.arguments, B->as.function.arguments,
+                                sizeof(TOKEN) * A->as.function.argc));
+        case TYPE_BUILTIN:
+                return A->as.builtin == B->as.builtin;
+        case TYPE_ARRAY:
+                if (A->as.array.count != B->as.array.count)
+                        return false;
+                for (size_t i = 0; i < A->as.array.count; i++)
+                {
+                        if (!RT_Is(&A->as.array.items[i], &B->as.array.items[i]))
+                                return false;
+                }
+                return true;
+        default:
+                return false;
+        }
 }
 
 void RT_DebugPrint(size_t X, VALUE *Value, char *Name)
@@ -137,7 +170,7 @@ void RT_DebugPrint(size_t X, VALUE *Value, char *Name)
         if (Value->Type == TYPE_INT)
                 printf("%.4lx:%32s<i64>    =%ld\n", X, Name, Value->as.integer);
         else if (Value->Type == TYPE_FN)
-                printf("%.4lx:%32s<fn>      fn@%p\n", X, Name, (void*)Value->as.function.start);
+                printf("%.4lx:%32s<fn>      fn@%p\n", X, Name, (void *)Value->as.function.start);
         else if (Value->Type == TYPE_BUILTIN)
                 printf("%.4lx:%32s<builtin> builtin@%p\n", X, Name, (void *)Value->as.builtin);
         else if (Value->Type == TYPE_ARRAY && !Value->as.array.is_string)
@@ -146,7 +179,8 @@ void RT_DebugPrint(size_t X, VALUE *Value, char *Name)
                 for (size_t i = 0; i < Value->as.array.count; ++i)
                 {
                         RT_MiniDebugPrint(&Value->as.array.items[i]);
-                        if (i < Value->as.array.count - 1) printf(", ");
+                        if (i < Value->as.array.count - 1)
+                                printf(", ");
                 }
 
                 printf("]\n");
@@ -157,7 +191,7 @@ void RT_DebugPrint(size_t X, VALUE *Value, char *Name)
                 printf("'");
                 for (size_t i = 0; i < Value->as.array.count; ++i)
                 {
-                        printf("%c", Value->as.array.items[i].as.integer);
+                        printf("%c", (char)Value->as.array.items[i].as.integer);
                 }
 
                 printf("'\n");
@@ -169,9 +203,10 @@ void RT_DebugPrint(size_t X, VALUE *Value, char *Name)
 VALUE RT_RequireTypeIMPL(TYPE Type, const char *const func, const char *const file, int line)
 {
         VALUE Value = RT_Pop();
-        if (Value.Type == Type) return Value;
+        if (Value.Type == Type)
+                return Value;
         printf("error: expected value of type %d but got %d, raised in %s in %s:%d\n", Type, Value.Type, func, file, line);
-        return (VALUE){.Type=TYPE_NONE};
+        return (VALUE){.Type = TYPE_NONE};
 }
 
 void RT_Cleanup(void)
@@ -185,7 +220,7 @@ void RT_Cleanup(void)
                         RT_DebugPrint(Scope, &Variable->Value, Variable->Name);
                         Variable = Variable->Next;
                 }
-                
+
                 RT_ExitScope();
         }
 

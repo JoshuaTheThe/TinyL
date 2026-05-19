@@ -48,6 +48,17 @@ TOKEN TK_Next(char **s)
                         Token.Kind = TOKEN_ELSE;
                 else if (!strncmp(Token.Identifier, "is", sizeof(Token.Identifier)))
                         Token.Kind = TOKEN_EQU;
+                else if (!strncmp(Token.Identifier, "true", sizeof(Token.Identifier)))
+                {
+                        Token.Kind = TOKEN_NUMBER;
+                        Token.Number = true;
+                }
+                else if (!strncmp(Token.Identifier, "false", sizeof(Token.Identifier)))
+                {
+                        Token.Kind = TOKEN_NUMBER;
+                        Token.Number = false;
+                }
+                
                 return Token;
         }
         else if (chr == '"')

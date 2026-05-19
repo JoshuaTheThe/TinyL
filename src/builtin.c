@@ -18,8 +18,52 @@ void Builtin_Print(size_t argc)
         printf("\n");
 }
 
+void Builtin_Find(size_t argc)
+{
+        if (argc < 2) {RT_Push((VALUE){.Type=TYPE_NONE}); return;}
+        VALUE Value = RT_Pop();
+        VALUE Array = RT_RequireType(TYPE_ARRAY);
+        for (size_t i = 0; i < Array.as.array.count; ++i)
+        {
+                if (Array.as.array.items[i].Type != Value.Type)
+                        continue;
+                switch (Value.Type)
+                {
+                        case TYPE_NONE: RT_Push(INT(i)); return;
+                        case TYPE_INT:
+                                if (Array.as.array.items[i].as.integer == Value.as.integer)
+                                {
+                                        RT_Push(INT(i));
+                                        return;
+                                }
+                                break;
+                        case TYPE_FN:
+                                if (!memcmp(&Array.as.array.items[i].as.function, &Value.as.function, sizeof(Value.as.function)))
+                                {
+                                        RT_Push(INT(i));
+                                        return;
+                                }
+                                break;
+                        case TYPE_BUILTIN:
+                                if (Array.as.array.items[i].as.builtin == Value.as.builtin)
+                                {
+                                        RT_Push(INT(i));
+                                        return;
+                                }
+                                break;
+                        case TYPE_ARRAY:
+                                if (Array.as.array.items[i].as.builtin == Value.as.builtin)
+                                {
+                                        RT_Push(INT(i));
+                                        return;
+                                }
+                                break;
+                }
+        }
+}
+
 void Builtin_AddBuiltinFunctions(void)
 {
-        RT_CreateVariable((TOKEN){.Identifier="print\0\0\0\0\0\0\0\0\0\0\0",.Kind=TOKEN_IDENTIFIER,.Number=6},
-                          (VALUE){.Type=TYPE_BUILTIN,.as.builtin=Builtin_Print});
+        ADD_BUILTIN("print", Builtin_Print);
+        ADD_BUILTIN("find", Builtin_Find);
 }
