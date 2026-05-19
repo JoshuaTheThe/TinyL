@@ -23,6 +23,7 @@ typedef enum
         TOKEN_NUMBER,
         TOKEN_IDENTIFIER,
         TOKEN_ASSIGN,
+        TOKEN_CREATE_ASSIGN,
         TOKEN_DECLARE,
         TOKEN_FUNCTION,
         TOKEN_IF,

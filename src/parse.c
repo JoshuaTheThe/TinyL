@@ -7,17 +7,17 @@ void PRS_Suffix(char **s)
         switch (tok.Kind)
         {
         case TOKEN_LSQ: // access
-        {        
+        {
                 RT_EnterScope(false);
                 TK_Next(s);
-                VALUE Base  = RT_RequireType(TYPE_ARRAY);
+                VALUE Base = RT_RequireType(TYPE_ARRAY);
                 while (TK_Peek(s).Kind != TOKEN_RSQ)
                 {
                         PRS_Expression(s);
                 }
 
                 VALUE Index = RT_RequireType(TYPE_INT);
-                VALUE Copy  = Index.as.integer > 0 && Index.as.integer < Base.as.array.count ? Base.as.array.items[Index.as.integer] : (VALUE){.Type=TYPE_NONE};
+                VALUE Copy = Index.as.integer > 0 && Index.as.integer < Base.as.array.count ? Base.as.array.items[Index.as.integer] : (VALUE){.Type = TYPE_NONE};
                 RT_CleanupValue(&Base);
                 RT_Push(Copy);
                 RT_ExitScope();
@@ -210,13 +210,26 @@ void PRS_Primary(char **s)
         {
                 TK_Next(s);
                 VARIABLE *Var = RT_FindVariable(tok);
-                if (TK_Peek(s).Kind == TOKEN_ASSIGN)
+                TOKEN next = TK_Peek(s);
+
+                if (next.Kind == TOKEN_ASSIGN || next.Kind == TOKEN_CREATE_ASSIGN)
                 {
+                        if (next.Kind == TOKEN_CREATE_ASSIGN)
+                                Var = RT_CreateVariable(tok, (VALUE){.Type = TYPE_NONE});
+                        else if (!Var)
+                                printf("error: variable '%s' not declared\n", tok.Identifier);
+
                         TK_Next(s);
                         PRS_Expression(s);
-                        Var->Value = RT_Pop();
+                        if (Var)
+                                Var->Value = RT_Pop();
                 }
-                RT_Push(Var->Value);
+
+                if (Var)
+                        RT_Push(Var->Value);
+                else
+                        RT_Push((VALUE){.Type = TYPE_NONE});
+
                 PRS_Suffix(s);
                 break;
         }
@@ -298,12 +311,6 @@ void PRS_Expression(char **s)
                         RT_Push((VALUE){.as.integer = left.as.integer == right.as.integer, .Type = TYPE_INT});
                 tok = TK_Peek(s);
         }
-
-        if (TK_Peek(s).Kind == TOKEN_EOE)
-        {
-                TK_Next(s);
-                RT_EmptyStack();
-        }
 }
 
 void Execute(char *s)
@@ -312,5 +319,10 @@ void Execute(char *s)
         while (TK_Peek(&p).Kind != TOKEN_EOF)
         {
                 PRS_Expression(&p);
+                if (TK_Peek(&p).Kind == TOKEN_EOE)
+                {
+                        TK_Next(&p);
+                        RT_EmptyStack();
+                }
         }
 }

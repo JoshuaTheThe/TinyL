@@ -1,7 +1,6 @@
-let x=10;
-let y=0;
-
-let min = function (a b){
+x := 10;
+y := 0;
+min := function (a b){
         if (a < b) { a }
         else       { b }
 };

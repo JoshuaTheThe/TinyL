@@ -59,6 +59,12 @@ TOKEN TK_Next(char **s)
                 }
                 return Token;
         }
+        else if (chr == ':')
+        {
+                if (TK_GetChar(s) == '=')
+                        return (TOKEN){.Kind = TOKEN_CREATE_ASSIGN, {0}, 0};
+                *s -= 1;
+        }
 
         switch (chr)
         {
