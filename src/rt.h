@@ -10,6 +10,8 @@
 #include <tok.h>
 
 #define INT(X) ((VALUE){.Type=TYPE_INT,.as.integer = X})
+#define MAX_STACK_DEPTH (32)
+#define MAX_SCOPE_DEPTH (64)
 
 typedef enum
 {
@@ -56,7 +58,9 @@ typedef struct VARIABLE
 typedef struct SCOPE
 {
         VARIABLE *Variables;
+        VALUE *Stack;
         bool Private; // cannot access parent;
+        int StackPointer;
 } SCOPE;
 
 #define RT_RequireType(type) RT_RequireTypeIMPL((type), __func__, __FILE__, __LINE__)
@@ -77,5 +81,6 @@ void RT_Initialise(void);
 void RT_CleanupValue(VALUE *Value);
 VALUE RT_Rel(int64_t rel);
 bool RT_Is(VALUE *A, VALUE *B);
+void RT_Append(VALUE *arr, VALUE val);
 
 #endif

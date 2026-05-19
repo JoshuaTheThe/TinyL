@@ -2,34 +2,39 @@
 #include <rt.h>
 #include <builtin.h>
 
-SCOPE Scopes[1024] = {0};
-VALUE Stack[1024] = {0};
+SCOPE Scopes[MAX_SCOPE_DEPTH] = {0};
 int Scope = 0;
-int StackPointer = 0;
 
 VALUE RT_Pop(void)
 {
-        if (StackPointer > 0)
-                return Stack[StackPointer--];
+        if (Scopes[Scope].StackPointer > 0)
+                return Scopes[Scope].Stack[Scopes[Scope].StackPointer--];
         return (VALUE){0};
 }
 
 VALUE RT_Rel(int64_t rel)
 {
-        if (StackPointer + rel > 0)
-                return Stack[StackPointer + rel];
+        if (Scopes[Scope].StackPointer + rel > 0)
+                return Scopes[Scope].Stack[Scopes[Scope].StackPointer + rel];
         return (VALUE){0};
 }
 
 void RT_Push(VALUE Value)
 {
-        if (StackPointer < 1023)
+        if (Scopes[Scope].StackPointer < MAX_STACK_DEPTH)
         {
-                Stack[++StackPointer] = Value;
+                Scopes[Scope].Stack[++Scopes[Scope].StackPointer] = Value;
                 return;
         }
 
         printf("error: stack overflow\n");
+        printf("<STACK>\n");
+        while (Scopes[Scope].StackPointer > 0 && Scopes[Scope].Stack)
+        {
+                VALUE Value = RT_Pop();
+                RT_DebugPrint(Scopes[Scope].StackPointer, &Value, "");
+        }
+        abort();
 }
 
 VARIABLE *RT_CreateVariable(TOKEN tok, VALUE Value)
@@ -91,15 +96,33 @@ void RT_CleanupVariables(void)
 
 void RT_EnterScope(bool Private)
 {
-        Scope++;
-        Scopes[Scope].Private = Private;
-        Scopes[Scope].Variables = NULL;
+        if (++Scope < MAX_SCOPE_DEPTH)
+        {
+                Scopes[Scope].Private = Private;
+                Scopes[Scope].Variables = NULL;
+                Scopes[Scope].StackPointer = 0;
+                Scopes[Scope].Stack = calloc(MAX_STACK_DEPTH, sizeof(VALUE));
+                return;
+        }
+
+        printf("error: scope overflow\n");
 }
 
 void RT_ExitScope(void)
 {
-        RT_CleanupVariables();
-        Scope--;
+        if (Scope > 0)
+        {
+                RT_CleanupVariables();
+                while (Scopes[Scope].StackPointer > 0)
+                {
+                        RT_CleanupValue(&Scopes[Scope].Stack[Scopes[Scope].StackPointer]);
+                        Scopes[Scope].StackPointer--;
+                }
+                
+                free(Scopes[Scope].Stack);
+                Scopes[Scope].Stack = NULL;
+                Scope--;
+        }
 }
 
 void RT_MiniDebugPrint(VALUE *Value)
@@ -221,20 +244,19 @@ void RT_Cleanup(void)
                         Variable = Variable->Next;
                 }
 
+                printf("<STACK>\n");
+                while (Scopes[Scope].StackPointer > 0 && Scopes[Scope].Stack)
+                {
+                        VALUE Value = RT_Pop();
+                        RT_DebugPrint(Scopes[Scope].StackPointer, &Value, "");
+                }
                 RT_ExitScope();
-        }
-
-        printf("<STACK>\n");
-        while (StackPointer > 0)
-        {
-                VALUE Value = RT_Pop();
-                RT_DebugPrint(StackPointer, &Value, "");
         }
 }
 
 void RT_EmptyStack(void)
 {
-        StackPointer = 0;
+        Scopes[Scope].StackPointer = 0;
 }
 
 void RT_Initialise(void)
@@ -242,4 +264,30 @@ void RT_Initialise(void)
         RT_EmptyStack();
         RT_EnterScope(true);
         Builtin_AddBuiltinFunctions();
+}
+
+void RT_Append(VALUE *arr, VALUE val)
+{
+        if (arr->Type != TYPE_ARRAY)
+        {
+                printf("error: cannot append to non-array\n");
+                return;
+        }
+
+        if (arr->as.array.count >= arr->as.array.capacity)
+        {
+                size_t new_cap = arr->as.array.capacity ? arr->as.array.capacity * 2 : 8;
+                VALUE *new_items = realloc(arr->as.array.items, sizeof(VALUE) * new_cap);
+                if (!new_items)
+                {
+                        printf("error: failed to grow array\n");
+                        return;
+                }
+                arr->as.array.items = new_items;
+                arr->as.array.capacity = new_cap;
+        }
+
+        arr->as.array.items[arr->as.array.count++] = val;
+        if (arr->as.array.is_string && val.Type != TYPE_INT)
+                arr->as.array.is_string = false;
 }

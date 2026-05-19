@@ -69,9 +69,9 @@ void PRS_Suffix(char **s)
         }
         case TOKEN_LPAREN: // call
         {
+                VALUE Value = RT_Pop();
                 RT_EnterScope(false);
                 TK_Next(s);
-                VALUE Value = RT_Pop();
                 if (Value.Type == TYPE_FN)
                 {
                         char *p = Value.as.function.start;
@@ -96,7 +96,9 @@ void PRS_Suffix(char **s)
                         Value.as.builtin(argc);
                 }
 
+                VALUE Return = RT_Pop();
                 RT_ExitScope();
+                RT_Push(Return);
                 PRS_Suffix(s);
                 break;
         }
@@ -209,9 +211,12 @@ void PRS_Primary(char **s)
                         {
                                 TK_SkipBlock(s);
                                 RT_ExitScope();
+                                RT_Push((VALUE){0});
                                 return;
                         }
+                        VALUE ret = RT_Pop();
                         RT_ExitScope();
+                        RT_Push(ret);
                         *s = temp;
                 }
                 break;
@@ -234,8 +239,8 @@ void PRS_Primary(char **s)
                 else
                 {
                         TK_SkipBlock(s);
-                        RT_Push((VALUE){.Type = TYPE_NONE});
                         RT_ExitScope();
+                        RT_Push((VALUE){.Type = TYPE_NONE});
                         if (TK_Peek(s).Kind == TOKEN_ELSE)
                         {
                                 PRS_Primary(s);
@@ -244,7 +249,9 @@ void PRS_Primary(char **s)
 
                         break;
                 }
+                VALUE ret = RT_Pop();
                 RT_ExitScope();
+                RT_Push(ret);
                 break;
         }
         case TOKEN_ELSE:
@@ -263,8 +270,13 @@ void PRS_Primary(char **s)
                 else
                 {
                         TK_SkipBlock(s);
+                        RT_ExitScope();
+                        RT_Push((VALUE){.Type = TYPE_NONE});
+                        return;
                 }
+                VALUE ret = RT_Pop();
                 RT_ExitScope();
+                RT_Push(ret);
                 break;
         }
 
