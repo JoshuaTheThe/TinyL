@@ -153,7 +153,7 @@ void RT_DebugPrint(size_t X, VALUE *Value, char *Name)
         }
         else if (Value->Type == TYPE_ARRAY && Value->as.array.is_string)
         {
-                printf("%.4lx:%32s<string> =[", X, Name);
+                printf("%.4lx:%32s<string> =", X, Name);
                 printf("'");
                 for (size_t i = 0; i < Value->as.array.count; ++i)
                 {
