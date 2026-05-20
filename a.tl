@@ -22,8 +22,20 @@ makeadder := function () {
         function (a, b) {a + b}
 }
 
+fib := function (n) {
+        if (n > 1)
+        {
+                fib(n - 1) + fib(n - 2)
+        }
+        else
+        {
+                n
+        }
+}
+
 funcs := [min, wfactorial]
 
+print("fib(10): ", fib(10), "\n")
 print("adder: ", makeadder(), "(1,2) => ", makeadder()(1,2), "\n")
 print("funcs[1](5) (7!): ", funcs[1](7), "\n");
 print("7!: ", wfactorial(7), "\n");
