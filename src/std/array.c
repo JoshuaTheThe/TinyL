@@ -125,3 +125,5 @@ void Builtin_Arr(size_t argc)
         Array.as.array.is_string = false;
         RT_Push(Array);
 }
+
+void Builtin_Slice(size_t argc) {} // todo

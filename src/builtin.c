@@ -14,6 +14,8 @@ void Builtin_AddBuiltinFunctions(void)
         // STD.IO
         ADD_BUILTIN("print", Builtin_Print);
         ADD_BUILTIN("input", Builtin_Input);
+        ADD_BUILTIN("readfile", Builtin_ReadFile);
+        ADD_BUILTIN("writefile", Builtin_WriteFile);
 
         // STD.ARRAY
         ADD_BUILTIN("find", Builtin_Find);
@@ -23,6 +25,7 @@ void Builtin_AddBuiltinFunctions(void)
         ADD_BUILTIN("capacity", Builtin_Cap);
         ADD_BUILTIN("asstr", Builtin_Str);
         ADD_BUILTIN("asarr", Builtin_Arr);
+        ADD_BUILTIN("slice", Builtin_Slice);
 
         // STD.CONVERT
         ADD_BUILTIN("toint", Builtin_ToInt);

@@ -8,5 +8,7 @@
 
 void Builtin_Print(size_t argc);
 void Builtin_Input(size_t argc);
+void Builtin_ReadFile(size_t argc);
+void Builtin_WriteFile(size_t argc);
 
 #endif

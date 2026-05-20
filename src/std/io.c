@@ -51,3 +51,6 @@ void Builtin_Input(size_t argc)
 
         RT_Push(result);
 }
+
+void Builtin_ReadFile(size_t argc) {} // todo
+void Builtin_WriteFile(size_t argc) {} // todo

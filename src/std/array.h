@@ -13,5 +13,6 @@ void Builtin_Len(size_t argc);
 void Builtin_Cap(size_t argc);
 void Builtin_Str(size_t argc);
 void Builtin_Arr(size_t argc);
+void Builtin_Slice(size_t argc);
 
 #endif
