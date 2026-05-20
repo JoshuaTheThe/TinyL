@@ -12,6 +12,29 @@ foreach := function (array, func) {
         }
 }
 
+sort := function (array, func) {
+        i := 0
+        while (i < len(array))
+        {
+                j := 0
+                while (j < len(array))
+                {
+                        if (func(array[i],array[j]))
+                        {
+                                temp := array[i]
+                                array[i] = array[j]
+                                array[j] = temp
+                        }
+                        
+                        j = j + 1
+                }
+                
+                i = i + 1
+        }
+        
+        array
+}
+
 factorial := function (n) {
         if (n < 2) { 1 }
         else       { n * factorial(n - 1) }
@@ -66,3 +89,4 @@ function () {
 }();
 
 foreach([1,2,3],print)
+print(sort([3, 4, 1],function(a,b){a<b}))

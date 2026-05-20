@@ -61,7 +61,7 @@ void PRS_Suffix(char **s)
                         }
                         else
                         {
-                                RT_Push(RT_Clone(Base.as.array.items[idx]));
+                                RT_Push(Base.as.array.items[idx]);
                         }
                 }
 
@@ -80,7 +80,7 @@ void PRS_Suffix(char **s)
                         RT_EnterScope(false);
                         while (TK_Peek(s).Kind != TOKEN_RPAREN && argc < 6)
                         {
-                                VALUE Argument = PRS_Expression(s);
+                                VALUE Argument = RT_Borrow(PRS_Expression(s));
                                 RT_CreateVariable(Value.as.function.arguments[argc++], Argument);
                                 if (TK_Peek(s).Kind == TOKEN_COMMA)
                                         TK_Next(s);
@@ -95,7 +95,7 @@ void PRS_Suffix(char **s)
                         RT_EnterScope(false);
                         while (TK_Peek(s).Kind != TOKEN_RPAREN)
                         {
-                                VALUE Value = PRS_Expression(s);
+                                VALUE Value = RT_Borrow(PRS_Expression(s));
                                 RT_Push(Value);
                                 if (TK_Peek(s).Kind == TOKEN_COMMA)
                                         TK_Next(s);
@@ -318,7 +318,7 @@ ELSE:
                         Var->Value = PRS_Expression(s);
                 }
 
-                RT_Push(RT_Clone(Var->Value));
+                RT_Push(Var->Value);
                 break;
         }
         case TOKEN_IDENTIFIER:
@@ -348,7 +348,7 @@ ELSE:
                 }
 
                 if (Var)
-                        RT_Push(RT_Clone(Var->Value));
+                        RT_Push(Var->Value);
                 else
                         RT_Push((VALUE){.Type = TYPE_NONE});
 

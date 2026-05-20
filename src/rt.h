@@ -25,6 +25,7 @@ typedef enum
 typedef struct VALUE
 {
         TYPE Type;
+        bool Borrowed;
         union
         {
                 int64_t integer;
@@ -86,5 +87,6 @@ void RT_ArrayInit(VALUE *arr);
 void RT_VisitParentScope(void);
 void RT_VisitSubScope(void);
 VALUE RT_Clone(VALUE value);
+VALUE RT_Borrow(VALUE value);
 
 #endif

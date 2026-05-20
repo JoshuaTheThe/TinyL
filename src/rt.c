@@ -70,7 +70,7 @@ VARIABLE *RT_FindVariable(TOKEN tok)
 
 void RT_CleanupValue(VALUE *Value)
 {
-        if (Value->Type == TYPE_ARRAY)
+        if (Value->Type == TYPE_ARRAY && !Value->Borrowed)
         {
                 for (size_t i = 0; i < Value->as.array.count; ++i)
                 {
@@ -341,4 +341,12 @@ VALUE RT_Clone(VALUE value)
         }
 
         return new;
+}
+
+VALUE RT_Borrow(VALUE value)
+{
+        if (value.Type != TYPE_ARRAY)
+                return value;
+        value.Borrowed = true;
+        return value;
 }
