@@ -212,6 +212,7 @@ void PRS_Primary(char **s)
                         {
                                 TK_Require(s, TOKEN_LPAREN);
                                 TK_SkipBlock(s);
+                                RT_Push(ret);
                                 return;
                         }
                         *s = temp;
@@ -234,28 +235,32 @@ void PRS_Primary(char **s)
                         {
                                 ret = PRS_Expression(s);
                         }
+                        TK_Require(s, TOKEN_RPAREN);
+                        RT_Push(ret);
+                        if (TK_Peek(s).Kind != TOKEN_ELSE)
+                        {
+                                return;
+                        }
                 }
                 else
                 {
                         TK_Require(s, TOKEN_LPAREN); // body
                         TK_SkipBlock(s);
                         RT_Push((VALUE){.Type = TYPE_NONE});
-                        if (TK_Peek(s).Kind == TOKEN_ELSE)
+                        if (TK_Peek(s).Kind != TOKEN_ELSE)
                         {
-                                PRS_Primary(s);
-                                break;
+                                return;
                         }
-
-                        break;
                 }
-                RT_Push(ret);
-                break;
+
+                goto ELSE;
         }
         case TOKEN_ELSE:
         {
+ELSE:
                 TK_Next(s);
                 VALUE cond = RT_Pop();
-                VALUE ret = {0};
+                VALUE ret = cond;
 
                 if (cond.Type == TYPE_NONE)
                 {
@@ -270,9 +275,6 @@ void PRS_Primary(char **s)
                 {
                         TK_Require(s, TOKEN_LPAREN); // body
                         TK_SkipBlock(s);
-                        RT_ExitScope();
-                        RT_Push((VALUE){.Type = TYPE_NONE});
-                        return;
                 }
 
                 RT_Push(ret);

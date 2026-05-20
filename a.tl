@@ -12,10 +12,10 @@ wfactorial := function (n) {
         acc := 1
         while (n > 1)
         {
-                acc = acc * n
                 n = n - 1
+                acc = acc * (n + 1)
+                acc
         }
-        acc
 }
 
 makeadder := function () {
@@ -25,7 +25,6 @@ makeadder := function () {
 funcs := [min, wfactorial]
 
 print("adder: ", makeadder(), "(1,2) => ", makeadder()(1,2) "\n")
-
 print("funcs[1](5) (7!): ", funcs[1](7), "\n");
 print("7!: ", wfactorial(7), "\n");
 print("Recursive 7!: ", factorial(7), "\n");
