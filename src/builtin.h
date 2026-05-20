@@ -16,4 +16,9 @@
 
 void Builtin_AddBuiltinFunctions(void);
 
+#define SETUP(c)              int __rel = c;
+#define ARGUMENT(nam)         VALUE nam = RT_Rel(-(__rel-- - 1));
+#define INTARGUMENT(nam)      VALUE nam = RT_Rel(-(__rel-- - 1)); if (nam.Type != TYPE_INT) {error("non integer argument given when expected integer");}
+#define ARRARGUMENT(nam)      VALUE nam = RT_Rel(-(__rel-- - 1)); if (nam.Type != TYPE_ARRAY) {error("non array argument given when expected array");}
+
 #endif

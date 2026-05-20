@@ -5,10 +5,11 @@
 
 void Builtin_Exit(size_t argc)
 {
+        SETUP(argc);
         int code = 0;
         if (argc > 0)
         {
-                VALUE Value = RT_RequireType(TYPE_INT);
+                INTARGUMENT(Value);
                 code = Value.as.integer;
         }
 
@@ -18,20 +19,23 @@ void Builtin_Exit(size_t argc)
 
 void Builtin_Typeof(size_t argc)
 {
+        SETUP(argc);
         if (argc < 1) return;
-        VALUE Value = RT_Pop();
+        ARGUMENT(Value);
         RT_Push(INT(Value.Type)); // lazy
 }
 
 void Builtin_Sleep(size_t argc)
 {
+        SETUP(argc);
         if (argc < 1) return;
-        VALUE Value = RT_RequireType(TYPE_INT);
+        INTARGUMENT(Value);
         sleep(Value.as.integer);
 }
 
 void Builtin_Time(size_t argc)
 {
+        SETUP(argc);
         (void)argc;
         RT_Push(INT(time(NULL)));
 }

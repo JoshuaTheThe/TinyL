@@ -10,9 +10,9 @@ void PRS_Suffix(char **s)
         case TOKEN_LSQ:
         {
                 TK_Next(s);
+                VALUE Base = RT_Pop();
                 VALUE Index = PRS_Expression(s);
                 TK_Require(s, TOKEN_RSQ);
-                VALUE Base = RT_Pop();
 
                 if (Base.Type != TYPE_ARRAY)
                 {
@@ -61,7 +61,7 @@ void PRS_Suffix(char **s)
                         }
                         else
                         {
-                                RT_Push(Base.as.array.items[idx]);
+                                RT_Push(RT_Clone(Base.as.array.items[idx]));
                         }
                 }
 
@@ -95,7 +95,8 @@ void PRS_Suffix(char **s)
                         RT_EnterScope(false);
                         while (TK_Peek(s).Kind != TOKEN_RPAREN)
                         {
-                                RT_Push(PRS_Expression(s));
+                                VALUE Value = PRS_Expression(s);
+                                RT_Push(Value);
                                 if (TK_Peek(s).Kind == TOKEN_COMMA)
                                         TK_Next(s);
                                 argc++;
@@ -315,10 +316,9 @@ ELSE:
                         TK_Next(s);
                         RT_CleanupValue(&Var->Value);
                         Var->Value = PRS_Expression(s);
-                        Var->Value.DontDiscard = true;
                 }
 
-                RT_Push(Var->Value);
+                RT_Push(RT_Clone(Var->Value));
                 break;
         }
         case TOKEN_IDENTIFIER:
@@ -344,12 +344,11 @@ ELSE:
                         TK_Next(s);
                         RT_CleanupValue(&Var->Value);
                         Var->Value = PRS_Expression(s);
-                        Var->Value.DontDiscard = true;
                         return;
                 }
 
                 if (Var)
-                        RT_Push(Var->Value);
+                        RT_Push(RT_Clone(Var->Value));
                 else
                         RT_Push((VALUE){.Type = TYPE_NONE});
 
@@ -443,8 +442,8 @@ VALUE PRS_Expression(char **s)
                         VALUE right = RT_Pop();
                         VALUE left = RT_Pop();
                         RT_Push(INT(RT_Is(&left, &right)));
-                        if (!left.DontDiscard) RT_CleanupValue(&left);
-                        if (!right.DontDiscard) RT_CleanupValue(&right);
+                        RT_CleanupValue(&left);
+                        RT_CleanupValue(&right);
                 }
                 tok = TK_Peek(s);
         }

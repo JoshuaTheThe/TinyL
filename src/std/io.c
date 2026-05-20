@@ -3,29 +3,27 @@
 
 void Builtin_Print(size_t argc)
 {
+        SETUP(argc);
         for (size_t i = 0; i < argc; ++i)
         {
-                VALUE Value = RT_Rel(-(argc - i - 1));
+                ARGUMENT(Value);
                 RT_MiniDebugPrint(&Value);
-                if (!Value.DontDiscard) RT_CleanupValue(&Value);
         }
 
-        for (size_t i = 0; i < argc; ++i)
-                RT_Pop();
         RT_Push((VALUE){.Type = TYPE_INT, .as.integer = argc});
 }
 
 void Builtin_Input(size_t argc)
 {
+        SETUP(argc);
         if (argc > 0)
         {
-                VALUE Prompt = RT_Pop();
+                ARGUMENT(Prompt);
                 if (Prompt.Type == TYPE_ARRAY && Prompt.as.array.is_string)
                 {
                         for (size_t i = 0; i < Prompt.as.array.count; i++)
                                 putchar(Prompt.as.array.items[i].as.integer);
                 }
-                if (!Prompt.DontDiscard) RT_CleanupValue(&Prompt);
         }
 
         char buffer[1024];
@@ -45,10 +43,6 @@ void Builtin_Input(size_t argc)
 
         for (char *p = buffer; *p; p++)
                 RT_Append(&result, INT(*p));
-
-        for (size_t i = 0; i < argc; i++)
-                RT_Pop();
-
         RT_Push(result);
 }
 

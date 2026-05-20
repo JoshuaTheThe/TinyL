@@ -3,6 +3,7 @@
 
 void Builtin_Find(size_t argc)
 {
+        SETUP(argc);
         if (argc < 2)
         {
                 RT_Push((VALUE){.Type = TYPE_NONE});
@@ -10,6 +11,7 @@ void Builtin_Find(size_t argc)
         }
         VALUE Value = RT_Pop();
         VALUE Array = RT_RequireType(TYPE_ARRAY);
+        RT_Push(Array); RT_Push(Value);
         for (size_t i = 0; i < Array.as.array.count; ++i)
         {
                 if (RT_Is(&Array.as.array.items[i], &Value))
@@ -20,11 +22,11 @@ void Builtin_Find(size_t argc)
         }
 
         RT_Push(INT(-1));
-        if (!Array.DontDiscard) RT_CleanupValue(&Array);
 }
 
 void Builtin_Append(size_t argc)
 {
+        SETUP(argc);
         if (argc < 2)
         {
                 error("append requires at least array and one value", (TOKEN){0});
@@ -52,6 +54,7 @@ void Builtin_Append(size_t argc)
 
 void Builtin_Remove(size_t argc)
 {
+        SETUP(argc);
         if (argc != 2)
         {
                 error("remove expects array and index", (TOKEN){0});
@@ -86,42 +89,45 @@ void Builtin_Remove(size_t argc)
                 Array.as.array.items[i] = Array.as.array.items[i + 1];
 
         Array.as.array.count--;
-        RT_Push(removed);
-        if (!Array.DontDiscard) RT_CleanupValue(&Array);
+        RT_Push(Array);
 }
 
 void Builtin_Len(size_t argc)
 {
+        SETUP(argc);
         if (argc < 1)
                 return;
-        VALUE Array = RT_RequireType(TYPE_ARRAY);
+        ARRARGUMENT(Array);
         RT_Push(INT(Array.as.array.count));
-        if (!Array.DontDiscard) RT_CleanupValue(&Array);
 }
 
 void Builtin_Cap(size_t argc)
 {
+        SETUP(argc);
         if (argc < 1)
                 return;
-        VALUE Array = RT_RequireType(TYPE_ARRAY);
+        ARRARGUMENT(Array);
         RT_Push(INT(Array.as.array.capacity));
-        if (!Array.DontDiscard) RT_CleanupValue(&Array);
 }
 
 void Builtin_Str(size_t argc)
 {
+        SETUP(argc);
         if (argc < 1)
                 return;
-        VALUE Array = RT_RequireType(TYPE_ARRAY);
+        ARRARGUMENT(Array);
+        RT_Pop();
         Array.as.array.is_string = true;
         RT_Push(Array);
 }
 
 void Builtin_Arr(size_t argc)
 {
+        SETUP(argc);
         if (argc < 1)
                 return;
-        VALUE Array = RT_RequireType(TYPE_ARRAY);
+        ARRARGUMENT(Array);
+        RT_Pop();
         Array.as.array.is_string = false;
         RT_Push(Array);
 }

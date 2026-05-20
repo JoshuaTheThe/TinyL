@@ -118,7 +118,7 @@ void RT_ExitScope(void)
                 while (Scopes[Scope].StackPointer > 0)
                 {
                         VALUE Value = RT_Pop();
-                        if (!Value.DontDiscard) RT_CleanupValue(&Value);
+                        RT_CleanupValue(&Value);
                 }
                 
                 free(Scopes[Scope].Stack);
@@ -326,4 +326,19 @@ void RT_VisitParentScope(void)
         {
                 Scope--;
         }
+}
+
+VALUE RT_Clone(VALUE value)
+{
+        if (value.Type != TYPE_ARRAY)
+                return value;
+        VALUE new;
+        RT_ArrayInit(&new);
+        new.as.array.is_string = value.as.array.is_string;
+        for (size_t i = 0; i < value.as.array.count; ++i)
+        {
+                RT_Append(&new, RT_Clone(value.as.array.items[i]));
+        }
+
+        return new;
 }

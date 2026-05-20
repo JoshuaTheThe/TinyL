@@ -10,7 +10,7 @@
 #include <tok.h>
 
 #define INT(X) ((VALUE){.Type=TYPE_INT,.as.integer = X})
-#define MAX_STACK_DEPTH (6)
+#define MAX_STACK_DEPTH (8)
 #define MAX_SCOPE_DEPTH (1024)
 
 typedef enum
@@ -25,7 +25,6 @@ typedef enum
 typedef struct VALUE
 {
         TYPE Type;
-        bool DontDiscard;
         union
         {
                 int64_t integer;
@@ -86,5 +85,6 @@ void RT_Append(VALUE *arr, VALUE val);
 void RT_ArrayInit(VALUE *arr);
 void RT_VisitParentScope(void);
 void RT_VisitSubScope(void);
+VALUE RT_Clone(VALUE value);
 
 #endif

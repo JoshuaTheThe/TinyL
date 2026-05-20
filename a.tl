@@ -1,6 +1,15 @@
-min := function (a b) {
+min := function (a, b) {
         if (a < b) { a }
         else       { b }
+}
+
+foreach := function (array, func) {
+        i := 0
+        while (i < len(array))
+        {
+                func(array[i])
+                i = i + 1
+        }
 }
 
 factorial := function (n) {
@@ -55,3 +64,5 @@ print("Hello ", input("Enter your Name: "), "!\n");
 function () {
         print("Hello, World\n")
 }();
+
+foreach([1,2,3],print)
