@@ -20,7 +20,7 @@ override DEFAULT_KCPPFLAGS :=
 $(eval $(call DEFAULT_VAR,KCPPFLAGS,$(DEFAULT_KCPPFLAGS)))
 override DEFAULT_KNASMFLAGS :=
 $(eval $(call DEFAULT_VAR,KNASMFLAGS,$(DEFAULT_KNASMFLAGS)))
-override DEFAULT_KLDFLAGS := -fsanitize=address
+override DEFAULT_KLDFLAGS := -fsanitize=address -lm
 $(eval $(call DEFAULT_VAR,KLDFLAGS,$(DEFAULT_KLDFLAGS)))
 
 override KCFLAGS += \

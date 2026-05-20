@@ -1,6 +1,7 @@
 
 #include <tok.h>
 #include <error.h>
+#include <ctype.h>
 
 char TK_GetChar(char **s)
 {
@@ -29,7 +30,7 @@ TOKEN TK_Next(char **s)
                 Token.Number = atoi(Token.Identifier);
                 return Token;
         }
-        else if (chr >= 'a' && chr <= 'z')
+        else if (isalpha(chr) || chr == '_')
         {
                 TOKEN Token = {.Kind = TOKEN_IDENTIFIER, {0}, 0};
                 for (; chr >= 'a' && chr <= 'z' && Token.Number < sizeof(Token.Identifier); ++Token.Number)
