@@ -4,7 +4,7 @@ hi := function () {
 }
 
 print(2 + 2 * 8, "HI", "\n")
-print(hi(), "\n", [4 5 6], "\n")
+print(hi(), "\n", [4, 5, 6], "\n")
 
 x := function (n)
 {
@@ -18,4 +18,4 @@ x := function (n)
         i
 }
 
-print("last: " x(10), "\n")
+print("last: ", x(10), "\n")
