@@ -1,6 +1,7 @@
 
 #include <rt.h>
 #include <builtin.h>
+#include <error.h>
 
 SCOPE Scopes[MAX_SCOPE_DEPTH] = {0};
 int Scope = 0;
@@ -21,7 +22,7 @@ VALUE RT_Rel(int64_t rel)
 
 void RT_Push(VALUE Value)
 {
-        if (Scopes[Scope].StackPointer < MAX_STACK_DEPTH)
+        if (Scopes[Scope].StackPointer < MAX_STACK_DEPTH-1)
         {
                 Scopes[Scope].Stack[++Scopes[Scope].StackPointer] = Value;
                 return;
@@ -106,6 +107,7 @@ void RT_EnterScope(bool Private)
         }
 
         printf("error: scope overflow\n");
+        abort();
 }
 
 void RT_ExitScope(void)
@@ -228,7 +230,7 @@ VALUE RT_RequireTypeIMPL(TYPE Type, const char *const func, const char *const fi
         VALUE Value = RT_Pop();
         if (Value.Type == Type)
                 return Value;
-        printf("error: expected value of type %d but got %d, raised in %s in %s:%d\n", Type, Value.Type, func, file, line);
+        error("expected value of type %d but got %d, raised in %s in %s:%d", Type, Value.Type, func, file, line);
         return (VALUE){.Type = TYPE_NONE};
 }
 
@@ -256,7 +258,11 @@ void RT_Cleanup(void)
 
 void RT_EmptyStack(void)
 {
-        Scopes[Scope].StackPointer = 0;
+        while (Scopes[Scope].StackPointer > 0)
+        {
+                RT_CleanupValue(&Scopes[Scope].Stack[Scopes[Scope].StackPointer]);
+                Scopes[Scope].StackPointer--;
+        }
 }
 
 void RT_Initialise(void)
@@ -271,6 +277,7 @@ void RT_Append(VALUE *arr, VALUE val)
         if (arr->Type != TYPE_ARRAY)
         {
                 printf("error: cannot append to non-array\n");
+                abort();
                 return;
         }
 
@@ -281,6 +288,7 @@ void RT_Append(VALUE *arr, VALUE val)
                 if (!new_items)
                 {
                         printf("error: failed to grow array\n");
+                        abort();
                         return;
                 }
                 arr->as.array.items = new_items;
@@ -299,4 +307,23 @@ void RT_ArrayInit(VALUE *arr)
         arr->as.array.count = 0;
         arr->as.array.capacity = 0;
         arr->as.array.is_string = false;
+}
+
+void RT_VisitSubScope(void)
+{
+        if (++Scope < MAX_SCOPE_DEPTH)
+        {
+                return;
+        }
+
+        printf("error: scope overflow\n");
+        abort();
+}
+
+void RT_VisitParentScope(void)
+{
+        if (Scope > 0)
+        {
+                Scope--;
+        }
 }

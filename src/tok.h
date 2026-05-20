@@ -35,6 +35,7 @@ typedef enum
         TOKEN_LSQ,
         TOKEN_RSQ,
         TOKEN_STRING,
+        TOKEN_COMMA,
 } TOKENKIND;
 
 typedef struct

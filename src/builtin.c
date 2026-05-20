@@ -1,6 +1,7 @@
 
 #include <builtin.h>
 #include <rt.h>
+#include <error.h>
 
 // Builtin functions
 
@@ -15,7 +16,6 @@ void Builtin_Print(size_t argc)
         for (size_t i = 0; i < argc; ++i)
                 RT_Pop();
         RT_Push((VALUE){.Type = TYPE_INT, .as.integer = argc});
-        printf("\n");
 }
 
 void Builtin_Input(size_t argc)
@@ -79,22 +79,22 @@ void Builtin_Append(size_t argc)
 {
         if (argc < 2)
         {
-                printf("error: append requires at least array and one value\n");
+                error("append requires at least array and one value", (TOKEN){0});
                 for (size_t i = 0; i < argc; i++)
                         RT_Pop();
                 RT_Push((VALUE){.Type = TYPE_NONE});
+                abort();
                 return;
         }
 
         VALUE Array = RT_Pop();
         if (Array.Type != TYPE_ARRAY)
         {
-                printf("error: append last argument must be array\n");
-                RT_Push((VALUE){.Type = TYPE_NONE});
+                error("append last argument must be array", (TOKEN){0});
                 return;
         }
 
-        VALUE values[16];
+        VALUE values[6];
         for (size_t i = 0; i < argc - 1; i++)
                 values[argc - 2 - i] = RT_Pop();
         for (size_t i = 0; i < argc - 1; i++)
@@ -106,10 +106,7 @@ void Builtin_Remove(size_t argc)
 {
         if (argc != 2)
         {
-                printf("error: remove expects array and index\n");
-                for (size_t i = 0; i < argc; i++)
-                        RT_Pop();
-                RT_Push((VALUE){.Type = TYPE_NONE});
+                error("remove expects array and index", (TOKEN){0});
                 return;
         }
 
@@ -118,15 +115,13 @@ void Builtin_Remove(size_t argc)
 
         if (Array.Type != TYPE_ARRAY)
         {
-                printf("error: remove first argument must be array\n");
-                RT_Push((VALUE){.Type = TYPE_NONE});
+                error("remove first argument must be array", (TOKEN){0});
                 return;
         }
 
         if (Index.Type != TYPE_INT)
         {
-                printf("error: remove second argument must be integer index\n");
-                RT_Push((VALUE){.Type = TYPE_NONE});
+                error("remove second argument must be integer index", (TOKEN){0});
                 return;
         }
 
@@ -134,8 +129,7 @@ void Builtin_Remove(size_t argc)
 
         if (idx < 0 || idx >= (int64_t)Array.as.array.count)
         {
-                printf("error: index %ld out of bounds (size %zu)\n", idx, Array.as.array.count);
-                RT_Push((VALUE){.Type = TYPE_NONE});
+                error("index %ld out of bounds (size %zu)", (TOKEN){0}, idx, Array.as.array.count);
                 return;
         }
 

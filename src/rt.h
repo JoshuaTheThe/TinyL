@@ -10,8 +10,8 @@
 #include <tok.h>
 
 #define INT(X) ((VALUE){.Type=TYPE_INT,.as.integer = X})
-#define MAX_STACK_DEPTH (32)
-#define MAX_SCOPE_DEPTH (64)
+#define MAX_STACK_DEPTH (6)
+#define MAX_SCOPE_DEPTH (1024)
 
 typedef enum
 {
@@ -31,7 +31,7 @@ typedef struct VALUE
                 struct
                 {
                         char  *start;
-                        TOKEN  arguments[16];
+                        TOKEN  arguments[6];
                         size_t argc;
                 } function;
                 
@@ -83,5 +83,7 @@ VALUE RT_Rel(int64_t rel);
 bool RT_Is(VALUE *A, VALUE *B);
 void RT_Append(VALUE *arr, VALUE val);
 void RT_ArrayInit(VALUE *arr);
+void RT_VisitParentScope(void);
+void RT_VisitSubScope(void);
 
 #endif

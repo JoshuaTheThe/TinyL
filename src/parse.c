@@ -1,5 +1,6 @@
 
 #include <parse.h>
+#include <error.h>
 
 void PRS_Suffix(char **s)
 {
@@ -9,8 +10,7 @@ void PRS_Suffix(char **s)
         case TOKEN_LSQ:
         {
                 TK_Next(s);
-                PRS_Expression(s);
-                VALUE Index = RT_Pop();
+                VALUE Index = PRS_Expression(s);
                 TK_Require(s, TOKEN_RSQ);
                 VALUE Base = RT_Pop();
 
@@ -19,6 +19,7 @@ void PRS_Suffix(char **s)
                         printf("error: cannot index non-array\n");
                         RT_Push((VALUE){.Type = TYPE_NONE});
                         PRS_Suffix(s);
+                        abort();
                         break;
                 }
 
@@ -27,6 +28,7 @@ void PRS_Suffix(char **s)
                         printf("error: array index must be integer\n");
                         RT_Push((VALUE){.Type = TYPE_NONE});
                         PRS_Suffix(s);
+                        abort();
                         break;
                 }
 
@@ -34,20 +36,18 @@ void PRS_Suffix(char **s)
                 if (TK_Peek(s).Kind == TOKEN_ASSIGN)
                 {
                         TK_Next(s);
-                        PRS_Expression(s);
-                        VALUE Value = RT_Pop();
-
+                        VALUE Value = PRS_Expression(s);
                         if (idx < 0 || idx >= (int64_t)Base.as.array.count)
                         {
                                 printf("error: index %ld out of bounds (size %zu)\n",
                                        idx, Base.as.array.count);
                                 RT_Push((VALUE){.Type = TYPE_NONE});
+                                abort();
                         }
                         else
                         {
                                 RT_CleanupValue(&Base.as.array.items[idx]);
                                 Base.as.array.items[idx] = Value;
-                                RT_Push(Value);
                         }
                 }
                 else
@@ -57,6 +57,7 @@ void PRS_Suffix(char **s)
                                 printf("error: index %ld out of bounds (size %zu)\n",
                                        idx, Base.as.array.count);
                                 RT_Push((VALUE){.Type = TYPE_NONE});
+                                abort();
                         }
                         else
                         {
@@ -70,34 +71,41 @@ void PRS_Suffix(char **s)
         case TOKEN_LPAREN: // call
         {
                 VALUE Value = RT_Pop();
-                RT_EnterScope(false);
+                VALUE Return = {0};
                 TK_Next(s);
                 if (Value.Type == TYPE_FN)
                 {
                         char *p = Value.as.function.start;
                         size_t argc = 0;
-                        while (TK_Peek(s).Kind != TOKEN_RPAREN && argc < 16)
+                        RT_EnterScope(false);
+                        while (TK_Peek(s).Kind != TOKEN_RPAREN && argc < 6)
                         {
-                                PRS_Expression(s);
-                                RT_CreateVariable(Value.as.function.arguments[argc++], RT_Pop());
+                                VALUE Argument = PRS_Expression(s);
+                                RT_CreateVariable(Value.as.function.arguments[argc++], Argument);
+                                if (TK_Peek(s).Kind == TOKEN_COMMA)
+                                        TK_Next(s);
                         }
                         TK_Require(s, TOKEN_RPAREN);
-                        PRS_Expression(&p);
+                        Return = PRS_Expression(&p);
+                        RT_ExitScope();
                 }
                 else if (Value.Type == TYPE_BUILTIN)
                 {
                         size_t argc = 0;
+                        RT_EnterScope(false);
                         while (TK_Peek(s).Kind != TOKEN_RPAREN)
                         {
-                                PRS_Expression(s);
+                                RT_Push(PRS_Expression(s));
+                                if (TK_Peek(s).Kind == TOKEN_COMMA)
+                                        TK_Next(s);
                                 argc++;
                         }
                         TK_Require(s, TOKEN_RPAREN);
                         Value.as.builtin(argc);
+                        Return = RT_Pop();
+                        RT_ExitScope();
                 }
 
-                VALUE Return = RT_Pop();
-                RT_ExitScope();
                 RT_Push(Return);
                 PRS_Suffix(s);
                 break;
@@ -144,16 +152,6 @@ void PRS_Primary(char **s)
                 VALUE Value = RT_RequireType(TYPE_INT);
                 Value.as.integer = -Value.as.integer;
                 RT_Push(Value);
-                PRS_Suffix(s);
-                break;
-        }
-        case TOKEN_ADD: // positive expr prefix (invalid in this case, oh well)
-        {
-                TK_Next(s);
-                PRS_Primary(s);
-                VALUE Value = RT_RequireType(TYPE_INT);
-                RT_Push(Value);
-                PRS_Suffix(s);
                 break;
         }
         case TOKEN_NUMBER:
@@ -171,8 +169,10 @@ void PRS_Primary(char **s)
                 arr.as.array.is_string = false;
                 while (TK_Peek(s).Kind != TOKEN_RSQ)
                 {
-                        PRS_Expression(s);
-                        VALUE item = RT_Pop();
+                        VALUE item = PRS_Expression(s);
+                        if (TK_Peek(s).Kind == TOKEN_COMMA)
+                                TK_Next(s);
+
                         if (arr.as.array.count >= arr.as.array.capacity)
                         {
                                 arr.as.array.capacity *= 2;
@@ -191,55 +191,54 @@ void PRS_Primary(char **s)
         case TOKEN_WHILE:
         {
                 char *temp = *s;
+                VALUE ret = {0};
                 while (true)
                 {
                         TK_Next(s);
                         TK_Require(s, TOKEN_LPAREN);
-                        PRS_Expression(s);
-                        VALUE cond = RT_Pop();
+                        VALUE cond = PRS_Expression(s);
                         TK_Require(s, TOKEN_RPAREN);
-                        RT_EnterScope(false);
-                        TK_Require(s, TOKEN_LPAREN); // body
 
                         if (cond.Type == TYPE_INT && cond.as.integer > 0)
                         {
+                                TK_Require(s, TOKEN_LPAREN); // body
                                 while (TK_Peek(s).Kind != TOKEN_RPAREN)
-                                        PRS_Expression(s);
+                                {
+                                        ret = PRS_Expression(s);
+                                }
                                 TK_Require(s, TOKEN_RPAREN);
                         }
                         else
                         {
+                                TK_Require(s, TOKEN_LPAREN);
                                 TK_SkipBlock(s);
-                                RT_ExitScope();
-                                RT_Push((VALUE){0});
                                 return;
                         }
-                        VALUE ret = RT_Pop();
-                        RT_ExitScope();
-                        RT_Push(ret);
                         *s = temp;
                 }
+
+                RT_Push(ret);
                 break;
         }
         case TOKEN_IF:
         {
                 TK_Next(s);
                 TK_Require(s, TOKEN_LPAREN);
-                PRS_Expression(s);
-                VALUE cond = RT_Pop();
+                VALUE cond = PRS_Expression(s);
                 TK_Require(s, TOKEN_RPAREN);
-                RT_EnterScope(false);
-                TK_Require(s, TOKEN_LPAREN); // body
-
+                VALUE ret = {0};
                 if (cond.Type == TYPE_INT && cond.as.integer > 0)
                 {
+                        TK_Require(s, TOKEN_LPAREN); // body
                         while (TK_Peek(s).Kind != TOKEN_RPAREN)
-                                PRS_Expression(s);
+                        {
+                                ret = PRS_Expression(s);
+                        }
                 }
                 else
                 {
+                        TK_Require(s, TOKEN_LPAREN); // body
                         TK_SkipBlock(s);
-                        RT_ExitScope();
                         RT_Push((VALUE){.Type = TYPE_NONE});
                         if (TK_Peek(s).Kind == TOKEN_ELSE)
                         {
@@ -249,8 +248,6 @@ void PRS_Primary(char **s)
 
                         break;
                 }
-                VALUE ret = RT_Pop();
-                RT_ExitScope();
                 RT_Push(ret);
                 break;
         }
@@ -258,24 +255,26 @@ void PRS_Primary(char **s)
         {
                 TK_Next(s);
                 VALUE cond = RT_Pop();
-                RT_EnterScope(false);
-                TK_Require(s, TOKEN_LPAREN); // body
+                VALUE ret = {0};
 
                 if (cond.Type == TYPE_NONE)
                 {
+                        TK_Require(s, TOKEN_LPAREN); // body
                         while (TK_Peek(s).Kind != TOKEN_RPAREN)
-                                PRS_Expression(s);
+                        {
+                                ret = PRS_Expression(s);
+                        }
                         TK_Require(s, TOKEN_RPAREN);
                 }
                 else
                 {
+                        TK_Require(s, TOKEN_LPAREN); // body
                         TK_SkipBlock(s);
                         RT_ExitScope();
                         RT_Push((VALUE){.Type = TYPE_NONE});
                         return;
                 }
-                VALUE ret = RT_Pop();
-                RT_ExitScope();
+
                 RT_Push(ret);
                 break;
         }
@@ -286,10 +285,12 @@ void PRS_Primary(char **s)
                 VALUE Value = {0};
                 Value.Type = TYPE_FN;
                 TK_Require(s, TOKEN_LPAREN); // args, for now just none
-                while (TK_Peek(s).Kind != TOKEN_RPAREN && Value.as.function.argc < 16)
+                while (TK_Peek(s).Kind != TOKEN_RPAREN && Value.as.function.argc < 6)
                 {
                         TOKEN tok = TK_Next(s);
                         Value.as.function.arguments[Value.as.function.argc++] = tok;
+                        if (TK_Peek(s).Kind == TOKEN_COMMA)
+                                TK_Next(s);
                 }
 
                 TK_Require(s, TOKEN_RPAREN);
@@ -304,12 +305,13 @@ void PRS_Primary(char **s)
         {
                 TK_Next(s);
                 TOKEN name = TK_Require(s, TOKEN_IDENTIFIER);
+                RT_VisitParentScope();
                 VARIABLE *Var = RT_CreateVariable(name, (VALUE){.Type = TYPE_NONE});
+                RT_VisitSubScope();
                 if (TK_Peek(s).Kind == TOKEN_ASSIGN)
                 {
                         TK_Next(s);
-                        PRS_Expression(s);
-                        Var->Value = RT_Pop();
+                        Var->Value = PRS_Expression(s);
                 }
 
                 RT_Push(Var->Value);
@@ -324,14 +326,20 @@ void PRS_Primary(char **s)
                 if (next.Kind == TOKEN_ASSIGN || next.Kind == TOKEN_CREATE_ASSIGN)
                 {
                         if (next.Kind == TOKEN_CREATE_ASSIGN)
+                        {
+                                RT_VisitParentScope();
                                 Var = RT_CreateVariable(tok, (VALUE){.Type = TYPE_NONE});
+                                RT_VisitSubScope();
+                        }
                         else if (!Var)
-                                printf("error: variable '%s' not declared\n", tok.Identifier);
+                        {
+                                error("variable '%s' not declared", tok.Identifier);
+                                return;
+                        }
 
                         TK_Next(s);
-                        PRS_Expression(s);
-                        if (Var)
-                                Var->Value = RT_Pop();
+                        Var->Value = PRS_Expression(s);
+                        return;
                 }
 
                 if (Var)
@@ -344,16 +352,15 @@ void PRS_Primary(char **s)
         }
         case TOKEN_LPAREN: // grouped expression
         {
-                RT_EnterScope(false);
                 TK_Next(s);
                 VALUE Value = {0};
                 while (TK_Peek(s).Kind != TOKEN_RPAREN)
                 {
-                        PRS_Expression(s);
-                        Value = RT_Pop();
+                        Value = PRS_Expression(s);
+                        if (TK_Peek(s).Kind == TOKEN_COMMA)
+                                TK_Next(s);
                 }
-                TK_Next(s);
-                RT_ExitScope();
+                TK_Require(s, TOKEN_RPAREN);
                 RT_Push(Value);
                 PRS_Suffix(s);
                 break;
@@ -404,8 +411,9 @@ void PRS_AddSub(char **s)
         }
 }
 
-void PRS_Expression(char **s)
+VALUE PRS_Expression(char **s)
 {
+        RT_EnterScope(false);
         PRS_AddSub(s);
         TOKEN tok = TK_Peek(s);
         while (tok.Kind == TOKEN_LSS || tok.Kind == TOKEN_GRT || tok.Kind == TOKEN_EQU)
@@ -432,6 +440,15 @@ void PRS_Expression(char **s)
                 }
                 tok = TK_Peek(s);
         }
+
+        if (TK_Peek(s).Kind == TOKEN_EOE)
+        {
+                TK_Next(s);
+        }
+
+        VALUE Return = RT_Pop();
+        RT_ExitScope();
+        return Return;
 }
 
 void Execute(char *s)
@@ -439,11 +456,7 @@ void Execute(char *s)
         char *p = s;
         while (TK_Peek(&p).Kind != TOKEN_EOF)
         {
-                PRS_Expression(&p);
-                if (TK_Peek(&p).Kind == TOKEN_EOE)
-                {
-                        TK_Next(&p);
-                        RT_EmptyStack();
-                }
+                VALUE val = PRS_Expression(&p);
+                RT_CleanupValue(&val);
         }
 }

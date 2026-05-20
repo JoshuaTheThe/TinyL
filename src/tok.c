@@ -1,5 +1,6 @@
 
 #include <tok.h>
+#include <error.h>
 
 char TK_GetChar(char **s)
 {
@@ -13,7 +14,7 @@ TOKEN TK_Next(char **s)
         char chr;
         do
                 chr = TK_GetChar(s);
-        while (chr == ' ' || chr == '\t' || chr == '\n');
+        while (chr == ' ' || chr == '\t' || chr == '\n' || chr == '\r');
 
         if (chr >= '0' && chr <= '9')
         {
@@ -93,6 +94,7 @@ TOKEN TK_Next(char **s)
                                         break;
                                 default:
                                         printf("error: unknown escape sequence '\\%c'\n", chr);
+                                        abort();
                                         break;
                                 }
                         }
@@ -103,7 +105,9 @@ TOKEN TK_Next(char **s)
                 }
 
                 if (chr != '"')
-                        printf("error: unterminated string\n");
+                {
+                        error("unterminated string", Token);
+                }
 
                 Token.Identifier[Token.Number] = '\0';
                 return Token;
@@ -145,6 +149,8 @@ TOKEN TK_Next(char **s)
                 return (TOKEN){.Kind = TOKEN_LSQ, {0}, 0};
         case ']':
                 return (TOKEN){.Kind = TOKEN_RSQ, {0}, 0};
+        case ',':
+                return (TOKEN){.Kind = TOKEN_COMMA, {0}, 0};
         default:
                 return (TOKEN){.Kind = TOKEN_EOF, {0}, 0};
         }
@@ -161,7 +167,7 @@ TOKEN TK_Require(char **s, TOKENKIND Kind)
         TOKEN Next = TK_Next(s);
         if (Next.Kind == Kind)
                 return Next;
-        printf("error: expected %d but got %d\n", Kind, Next.Kind);
+        error("expected %d but got %d", Kind, Next.Kind);
         return (TOKEN){.Kind = TOKEN_EOF, {0}, 0};
 }
 

@@ -14,13 +14,13 @@ override DEFAULT_KCC := cc
 $(eval $(call DEFAULT_VAR,KCC,$(DEFAULT_KCC)))
 override DEFAULT_KLD := cc
 $(eval $(call DEFAULT_VAR,KLD,$(DEFAULT_KLD)))
-override DEFAULT_KCFLAGS := -Wall -Wextra -g
+override DEFAULT_KCFLAGS := -Wall -Wextra -g -fsanitize=address
 $(eval $(call DEFAULT_VAR,KCFLAGS,$(DEFAULT_KCFLAGS)))
 override DEFAULT_KCPPFLAGS :=
 $(eval $(call DEFAULT_VAR,KCPPFLAGS,$(DEFAULT_KCPPFLAGS)))
 override DEFAULT_KNASMFLAGS :=
 $(eval $(call DEFAULT_VAR,KNASMFLAGS,$(DEFAULT_KNASMFLAGS)))
-override DEFAULT_KLDFLAGS :=  -static
+override DEFAULT_KLDFLAGS := -fsanitize=address
 $(eval $(call DEFAULT_VAR,KLDFLAGS,$(DEFAULT_KLDFLAGS)))
 
 override KCFLAGS += \
@@ -48,7 +48,7 @@ override HEADER_DEPS := $(addprefix obj/,$(CFILES:.c=.c.d) $(ASFILES:.S=.S.d))
 all: bin/$(OUTPUT)
 bin/$(OUTPUT): $(OBJ)
 	mkdir -p "$$(dirname $@)"
-	cc -o $@ $(OBJ)
+	cc -o $@ $(OBJ) $(KLDFLAGS)
 -include $(HEADER_DEPS)
 obj/%.c.o: src/%.c
 	mkdir -p "$$(dirname $@)"
