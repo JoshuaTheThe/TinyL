@@ -1,5 +1,5 @@
 override MAKEFLAGS += -rR
-override OUTPUT := tinyl
+override OUTPUT := tl
 
 define DEFAULT_VAR =
     ifeq ($(origin $1),default)
