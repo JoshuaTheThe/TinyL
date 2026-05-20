@@ -20,6 +20,7 @@ void Builtin_Find(size_t argc)
         }
 
         RT_Push(INT(-1));
+        if (!Array.DontDiscard) RT_CleanupValue(&Array);
 }
 
 void Builtin_Append(size_t argc)
@@ -86,6 +87,7 @@ void Builtin_Remove(size_t argc)
 
         Array.as.array.count--;
         RT_Push(removed);
+        if (!Array.DontDiscard) RT_CleanupValue(&Array);
 }
 
 void Builtin_Len(size_t argc)
@@ -94,6 +96,7 @@ void Builtin_Len(size_t argc)
                 return;
         VALUE Array = RT_RequireType(TYPE_ARRAY);
         RT_Push(INT(Array.as.array.count));
+        if (!Array.DontDiscard) RT_CleanupValue(&Array);
 }
 
 void Builtin_Cap(size_t argc)
@@ -102,6 +105,7 @@ void Builtin_Cap(size_t argc)
                 return;
         VALUE Array = RT_RequireType(TYPE_ARRAY);
         RT_Push(INT(Array.as.array.capacity));
+        if (!Array.DontDiscard) RT_CleanupValue(&Array);
 }
 
 void Builtin_Str(size_t argc)

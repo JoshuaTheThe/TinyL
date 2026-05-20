@@ -25,6 +25,7 @@ typedef enum
 typedef struct VALUE
 {
         TYPE Type;
+        bool DontDiscard;
         union
         {
                 int64_t integer;

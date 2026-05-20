@@ -7,6 +7,7 @@ void Builtin_Print(size_t argc)
         {
                 VALUE Value = RT_Rel(-(argc - i - 1));
                 RT_MiniDebugPrint(&Value);
+                if (!Value.DontDiscard) RT_CleanupValue(&Value);
         }
 
         for (size_t i = 0; i < argc; ++i)
@@ -24,6 +25,7 @@ void Builtin_Input(size_t argc)
                         for (size_t i = 0; i < Prompt.as.array.count; i++)
                                 putchar(Prompt.as.array.items[i].as.integer);
                 }
+                if (!Prompt.DontDiscard) RT_CleanupValue(&Prompt);
         }
 
         char buffer[1024];

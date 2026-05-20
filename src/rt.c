@@ -118,7 +118,7 @@ void RT_ExitScope(void)
                 while (Scopes[Scope].StackPointer > 0)
                 {
                         VALUE Value = RT_Pop();
-                        RT_CleanupValue(&Value);
+                        if (!Value.DontDiscard) RT_CleanupValue(&Value);
                 }
                 
                 free(Scopes[Scope].Stack);
